@@ -117,38 +117,115 @@
   }
 
   /* ---------------------------------------------------------
-     IDEA LIFECYCLE — active stage on horizontal scroll
+     PIPELINE SLIDER — "Raw data isn't the product" section.
+     Native scroll-snap drives touch/trackpad swipe; buttons,
+     arrow keys and click-drag (for desktop mice) all move the
+     same scroll position, so everything stays in sync through
+     one scroll-listener that updates the active card, counter
+     and progress bar. The ring/node/scan "analytical loop" is
+     purely decorative and only animates while the section is
+     actually on screen (via IntersectionObserver), so it reads
+     as a triggered effect rather than something always spinning.
      --------------------------------------------------------- */
-  var ideaTrack = document.querySelector("[data-idea-track]");
-  if (ideaTrack) {
-    var stages = ideaTrack.querySelectorAll("[data-idea-stage]");
-    var updateActiveStage = function () {
-      var trackRect = ideaTrack.getBoundingClientRect();
-      var center = trackRect.left + trackRect.width * 0.32;
-      var closest = null, closestDist = Infinity;
-      stages.forEach(function (stage) {
-        var r = stage.getBoundingClientRect();
-        var stageCenter = r.left + r.width / 2;
-        var dist = Math.abs(stageCenter - center);
-        if (dist < closestDist) { closestDist = dist; closest = stage; }
-      });
-      stages.forEach(function (stage) {
-        stage.classList.toggle("is-active", stage === closest);
-      });
+  var pipeline = document.querySelector("[data-pipeline]");
+  var pipelineTrack = document.querySelector("[data-pipeline-track]");
+  if (pipeline && pipelineTrack) {
+    var pipelineList = pipelineTrack.querySelector(".pipeline-list");
+    var pipelineCards = Array.prototype.slice.call(pipelineTrack.querySelectorAll("[data-pipeline-card]"));
+    var pPrev = document.querySelector("[data-pipeline-prev]");
+    var pNext = document.querySelector("[data-pipeline-next]");
+    var pCurrent = document.querySelector("[data-pipeline-current]");
+    var pTotal = document.querySelector("[data-pipeline-total]");
+    var pProgress = document.querySelector("[data-pipeline-progress]");
+
+    if (pTotal) pTotal.textContent = String(pipelineCards.length).padStart(2, "0");
+
+    var pStep = function () {
+      var first = pipelineCards[0];
+      var gap = parseFloat(getComputedStyle(pipelineList).columnGap || getComputedStyle(pipelineList).gap || "24");
+      return first.getBoundingClientRect().width + gap;
     };
-    updateActiveStage();
-    var ideaTicking = false;
-    ideaTrack.addEventListener("scroll", function () {
-      if (!ideaTicking) {
-        requestAnimationFrame(function () { updateActiveStage(); ideaTicking = false; });
-        ideaTicking = true;
+    var pIndex = function () {
+      return Math.round(pipelineTrack.scrollLeft / pStep());
+    };
+    var pUpdate = function () {
+      var idx = Math.max(0, Math.min(pipelineCards.length - 1, pIndex()));
+      pipelineCards.forEach(function (card, i) { card.classList.toggle("is-active", i === idx); });
+      if (pCurrent) pCurrent.textContent = String(idx + 1).padStart(2, "0");
+      if (pProgress) {
+        pProgress.style.width = (100 / pipelineCards.length) + "%";
+        pProgress.style.transform = "translateX(" + idx * 100 + "%)";
+      }
+      var atStart = pipelineTrack.scrollLeft <= 4;
+      var atEnd = pipelineTrack.scrollLeft + pipelineTrack.clientWidth >= pipelineTrack.scrollWidth - 4;
+      if (pPrev) pPrev.disabled = atStart;
+      if (pNext) pNext.disabled = atEnd;
+    };
+    var pGoTo = function (idx) {
+      idx = Math.max(0, Math.min(pipelineCards.length - 1, idx));
+      pipelineTrack.scrollTo({ left: idx * pStep(), behavior: reduceMotion ? "auto" : "smooth" });
+    };
+
+    if (pPrev) pPrev.addEventListener("click", function () { pGoTo(pIndex() - 1); });
+    if (pNext) pNext.addEventListener("click", function () { pGoTo(pIndex() + 1); });
+
+    var pTicking = false;
+    pipelineTrack.addEventListener("scroll", function () {
+      if (!pTicking) {
+        requestAnimationFrame(function () { pUpdate(); pTicking = false; });
+        pTicking = true;
       }
     }, { passive: true });
-    window.addEventListener("resize", updateActiveStage);
 
-    // let vertical wheel input drive horizontal scroll, but fall through
-    // to normal page scroll once the track has reached either end
-    attachWheelToHorizontal(ideaTrack);
+    // keyboard navigation when the track itself has focus
+    pipelineTrack.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") { pGoTo(pIndex() + 1); e.preventDefault(); }
+      if (e.key === "ArrowLeft") { pGoTo(pIndex() - 1); e.preventDefault(); }
+    });
+
+    // click-and-drag for desktop mice — touch/trackpad already scroll natively
+    var pDragging = false, pDragStartX = 0, pDragStartScroll = 0, pDragMoved = false;
+    pipelineTrack.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "touch") return;
+      pDragging = true;
+      pDragMoved = false;
+      pDragStartX = e.clientX;
+      pDragStartScroll = pipelineTrack.scrollLeft;
+      pipelineTrack.classList.add("is-dragging");
+      pipelineTrack.setPointerCapture(e.pointerId);
+    });
+    pipelineTrack.addEventListener("pointermove", function (e) {
+      if (!pDragging) return;
+      var dx = e.clientX - pDragStartX;
+      if (Math.abs(dx) > 4) pDragMoved = true;
+      pipelineTrack.scrollLeft = pDragStartScroll - dx;
+    });
+    var pEndDrag = function () {
+      if (!pDragging) return;
+      pDragging = false;
+      pipelineTrack.classList.remove("is-dragging");
+      if (pDragMoved) pGoTo(pIndex()); // snap to the nearest card
+    };
+    pipelineTrack.addEventListener("pointerup", pEndDrag);
+    pipelineTrack.addEventListener("pointercancel", pEndDrag);
+    pipelineTrack.addEventListener("pointerleave", function () { if (pDragging) pEndDrag(); });
+    pipelineTrack.addEventListener("dragstart", function (e) { e.preventDefault(); });
+
+    window.addEventListener("resize", pUpdate);
+    pUpdate();
+    attachWheelToHorizontal(pipelineTrack);
+
+    // analytical-loop decoration only plays while the section is visible
+    if ("IntersectionObserver" in window) {
+      var loopIO = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          pipeline.classList.toggle("is-in-view", entry.isIntersecting);
+        });
+      }, { threshold: 0.25 });
+      loopIO.observe(pipeline);
+    } else {
+      pipeline.classList.add("is-in-view");
+    }
   }
 
   function attachWheelToHorizontal(el) {

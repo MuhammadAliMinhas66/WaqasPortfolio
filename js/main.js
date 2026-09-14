@@ -177,6 +177,135 @@
   }
 
   /* ---------------------------------------------------------
+     WORK SLIDER — single-line, arrow + swipe navigation
+     --------------------------------------------------------- */
+  var slider = document.querySelector("[data-slider]");
+  var sliderTrack = document.querySelector("[data-slider-track]");
+  if (slider && sliderTrack) {
+    var slides = Array.prototype.slice.call(sliderTrack.querySelectorAll(".work-item"));
+    var prevBtn = document.querySelector("[data-slider-prev]");
+    var nextBtn = document.querySelector("[data-slider-next]");
+    var currentEl = document.querySelector("[data-slider-current]");
+    var totalEl = document.querySelector("[data-slider-total]");
+    var progressEl = document.querySelector("[data-slider-progress]");
+
+    if (totalEl) totalEl.textContent = String(slides.length).padStart(2, "0");
+
+    var slideStep = function () {
+      var first = slides[0];
+      var gap = parseFloat(getComputedStyle(sliderTrack).columnGap || getComputedStyle(sliderTrack).gap || "24");
+      return first.getBoundingClientRect().width + gap;
+    };
+
+    var currentIndex = function () {
+      var step = slideStep();
+      return Math.round(sliderTrack.scrollLeft / step);
+    };
+
+    var updateSliderUI = function () {
+      var idx = Math.max(0, Math.min(slides.length - 1, currentIndex()));
+      if (currentEl) currentEl.textContent = String(idx + 1).padStart(2, "0");
+      if (progressEl) {
+        progressEl.style.width = (100 / slides.length) + "%";
+        progressEl.style.transform = "translateX(" + idx * 100 + "%)";
+      }
+      var atStart = sliderTrack.scrollLeft <= 4;
+      var atEnd = sliderTrack.scrollLeft + sliderTrack.clientWidth >= sliderTrack.scrollWidth - 4;
+      if (prevBtn) prevBtn.disabled = atStart;
+      if (nextBtn) nextBtn.disabled = atEnd;
+    };
+
+    var goTo = function (idx) {
+      idx = Math.max(0, Math.min(slides.length - 1, idx));
+      sliderTrack.scrollTo({ left: idx * slideStep(), behavior: reduceMotion ? "auto" : "smooth" });
+    };
+
+    if (prevBtn) prevBtn.addEventListener("click", function () { goTo(currentIndex() - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function () { goTo(currentIndex() + 1); });
+
+    var sliderTicking = false;
+    sliderTrack.addEventListener("scroll", function () {
+      if (!sliderTicking) {
+        requestAnimationFrame(function () { updateSliderUI(); sliderTicking = false; });
+        sliderTicking = true;
+      }
+    }, { passive: true });
+
+    window.addEventListener("resize", updateSliderUI);
+    updateSliderUI();
+    attachWheelToHorizontal(sliderTrack);
+  }
+
+  /* ---------------------------------------------------------
+     LIGHTBOX — click a project to open it full size
+     --------------------------------------------------------- */
+  var lightbox = document.querySelector("[data-lightbox]");
+  var triggers = Array.prototype.slice.call(document.querySelectorAll("[data-slide-trigger]"));
+  if (lightbox && triggers.length) {
+    var lbImg = lightbox.querySelector("[data-lightbox-img]");
+    var lbTag = lightbox.querySelector("[data-lightbox-tag]");
+    var lbTitle = lightbox.querySelector("[data-lightbox-title]");
+    var lbDesc = lightbox.querySelector("[data-lightbox-desc]");
+    var lbCurrent = lightbox.querySelector("[data-lightbox-current]");
+    var lbTotal = lightbox.querySelector("[data-lightbox-total]");
+    var lbClose = lightbox.querySelector("[data-lightbox-close]");
+    var lbPrev = lightbox.querySelector("[data-lightbox-prev]");
+    var lbNext = lightbox.querySelector("[data-lightbox-next]");
+    var lbBackdrop = lightbox.querySelector("[data-lightbox-backdrop]");
+
+    var activeIndex = 0;
+    var lastFocused = null;
+    if (lbTotal) lbTotal.textContent = String(triggers.length).padStart(2, "0");
+
+    var renderSlide = function (i) {
+      var t = triggers[i];
+      if (lbImg) {
+        lbImg.src = t.getAttribute("data-full");
+        lbImg.alt = t.getAttribute("data-title") || "";
+      }
+      if (lbTag) lbTag.textContent = t.getAttribute("data-tag") || "";
+      if (lbTitle) lbTitle.textContent = t.getAttribute("data-title") || "";
+      if (lbDesc) lbDesc.textContent = t.getAttribute("data-desc") || "";
+      if (lbCurrent) lbCurrent.textContent = String(i + 1).padStart(2, "0");
+    };
+
+    var openLightbox = function (i) {
+      activeIndex = i;
+      lastFocused = document.activeElement;
+      renderSlide(activeIndex);
+      lightbox.setAttribute("data-open", "true");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      if (lbClose) lbClose.focus();
+    };
+
+    var closeLightbox = function () {
+      lightbox.setAttribute("data-open", "false");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+    };
+
+    var showNext = function () { renderSlide((activeIndex = (activeIndex + 1) % triggers.length)); };
+    var showPrev = function () { renderSlide((activeIndex = (activeIndex - 1 + triggers.length) % triggers.length)); };
+
+    triggers.forEach(function (t, i) {
+      t.addEventListener("click", function () { openLightbox(i); });
+    });
+    if (lbClose) lbClose.addEventListener("click", closeLightbox);
+    if (lbBackdrop) lbBackdrop.addEventListener("click", closeLightbox);
+    if (lbNext) lbNext.addEventListener("click", showNext);
+    if (lbPrev) lbPrev.addEventListener("click", showPrev);
+
+    document.addEventListener("keydown", function (e) {
+      if (lightbox.getAttribute("data-open") !== "true") return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") showNext();
+      if (e.key === "ArrowLeft") showPrev();
+    });
+  }
+
+  /* ---------------------------------------------------------
      GSAP SCROLLTRIGGER — section entrances + analytical loop
      --------------------------------------------------------- */
   if (window.gsap && window.ScrollTrigger && !reduceMotion) {

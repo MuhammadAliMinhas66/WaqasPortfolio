@@ -6,6 +6,158 @@
   "use strict";
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------------------------------------------------------
+     TRANSMISSION — no backend inbox exists yet, so this copies
+     the visitor's message to their clipboard and opens LinkedIn,
+     rather than pretending to send an email that goes nowhere.
+     --------------------------------------------------------- */
+  var transmissionBtn = document.querySelector("[data-transmission-send]");
+  var transmissionInput = document.querySelector("[data-transmission-input]");
+  if (transmissionBtn && transmissionInput) {
+    transmissionBtn.addEventListener("click", function () {
+      var text = transmissionInput.value.trim();
+      var originalLabel = transmissionBtn.textContent;
+      var finish = function (label) {
+        transmissionBtn.textContent = label;
+        window.setTimeout(function () { transmissionBtn.textContent = originalLabel; }, 2200);
+        window.open("https://www.linkedin.com/in/waqassharafat2674/", "_blank", "noopener");
+      };
+      if (!text) { finish("Opening LinkedIn →"); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          finish("Copied ✓ opening LinkedIn →");
+        }).catch(function () {
+          finish("Opening LinkedIn →");
+        });
+      } else {
+        finish("Opening LinkedIn →");
+      }
+    });
+  }
+
+  /* ---------------------------------------------------------
+     ASK MY ASSISTANT — a small, honest keyword-matching Q&A.
+     No external API: every answer below is a real fact about
+     Waqas (projects, tools, experience, availability), matched
+     against whatever the visitor types by scanning for the
+     keywords tied to each answer. First match wins, most
+     specific intents are listed first so they don't get
+     shadowed by broader ones (e.g. "best project" before the
+     general "project" catch-all).
+     --------------------------------------------------------- */
+  var aiForm = document.querySelector("[data-ai-form]");
+  var aiLog = document.querySelector("[data-ai-log]");
+  var aiInput = document.querySelector("[data-ai-input]");
+  var aiSuggestions = document.querySelector("[data-ai-suggestions]");
+
+  if (aiForm && aiLog && aiInput) {
+    var aiIntents = [
+      {
+        keywords: ["best project", "favorite project", "favourite project", "top project", "proudest"],
+        answer: "The one I'd point to is the 3PL logistics dashboard — SLA compliance and late-delivery tracking by courier and district. It's closest to the operational reporting work I actually do day to day at Daewoo FastEx."
+      },
+      {
+        keywords: ["technology", "technologies", "tech stack", "tools", "stack", "skills", "use"],
+        answer: "Power BI (DAX, Power Query, data modeling, row-level security), SQL (ETL, performance tuning), Python (pandas, NumPy, scikit-learn), and Excel (Power Query, PivotTables). KPI design and operational/logistics reporting sit on top of all of it."
+      },
+      {
+        keywords: ["experience", "work history", "career", "background", "job"],
+        answer: "Currently a Data Analyst at Daewoo FastEx (Oct 2025–present), doing logistics and operational reporting. Before that, a year of freelance data analytics work (Jan–Dec 2025) across Excel, Power BI, Google Sheets, SQL and Python."
+      },
+      {
+        keywords: ["available", "freelance", "hire", "hiring", "contract", "open to work"],
+        answer: "Yes — open to freelance work alongside the full-time role. Best way to reach him is LinkedIn (linked in the Contact section below)."
+      },
+      {
+        keywords: ["education", "degree", "university", "comsats", "study", "studied"],
+        answer: "BSCS (Computer Science) from COMSATS University Islamabad, 2020–2024."
+      },
+      {
+        keywords: ["certification", "certificate", "certified", "udemy", "cisco"],
+        answer: "Two named on his LinkedIn: \"Analyzing and Visualizing Data with Microsoft Power BI\" (Udemy) and \"Data Analytics Essentials\" (Cisco)."
+      },
+      {
+        keywords: ["contact", "email", "reach", "linkedin", "connect"],
+        answer: "The Contact section at the bottom of this page links straight to his LinkedIn — that's the fastest way to reach him."
+      },
+      {
+        keywords: ["where", "location", "based", "live", "from"],
+        answer: "Originally from Attock, Pakistan — currently based in Lahore."
+      },
+      {
+        keywords: ["project", "projects", "work", "portfolio", "dashboard"],
+        answer: "Six featured builds in Selected Work (logistics, retail, hospital operations, product, public data, content) plus eight smaller practice dashboards in the Lab section — 14 in total, scroll up to browse them."
+      }
+    ];
+
+    var aiFallback = "I don't have a specific answer for that from this page's content — try asking about his projects, tools, experience, education, or availability, or check the Contact section to ask him directly.";
+
+    var aiAnswer = function (question) {
+      var q = question.toLowerCase();
+      for (var i = 0; i < aiIntents.length; i++) {
+        var kws = aiIntents[i].keywords;
+        for (var j = 0; j < kws.length; j++) {
+          if (q.indexOf(kws[j]) !== -1) return aiIntents[i].answer;
+        }
+      }
+      return aiFallback;
+    };
+
+    var aiAppend = function (role, text) {
+      var msg = document.createElement("div");
+      msg.className = "ai-msg " + (role === "user" ? "ai-msg--user" : "ai-msg--bot");
+      var roleLabel = document.createElement("span");
+      roleLabel.className = "ai-msg-role";
+      roleLabel.textContent = role === "user" ? "You" : "Assistant";
+      var p = document.createElement("p");
+      p.textContent = text;
+      msg.appendChild(roleLabel);
+      msg.appendChild(p);
+      aiLog.appendChild(msg);
+      aiLog.scrollTop = aiLog.scrollHeight;
+    };
+
+    var aiAsk = function (question) {
+      question = question.trim();
+      if (!question) return;
+      aiAppend("user", question);
+      // tiny delay so the reply doesn't feel instant/robotic
+      window.setTimeout(function () { aiAppend("bot", aiAnswer(question)); }, 260);
+    };
+
+    aiForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      aiAsk(aiInput.value);
+      aiInput.value = "";
+      aiInput.focus();
+    });
+
+    if (aiSuggestions) {
+      aiSuggestions.addEventListener("click", function (e) {
+        var chip = e.target.closest(".ai-chip");
+        if (!chip) return;
+        aiAsk(chip.textContent);
+      });
+    }
+  }
+
+  /* ---------------------------------------------------------
+     DIGITAL ME AVATAR — subtle cursor-reactive tilt
+     --------------------------------------------------------- */
+  var tiltEl = document.querySelector("[data-tilt]");
+  if (tiltEl && !reduceMotion && window.matchMedia("(pointer: fine)").matches) {
+    var tiltInner = tiltEl.querySelector(".profile-avatar-inner");
+    tiltEl.addEventListener("mousemove", function (e) {
+      var r = tiltEl.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      tiltInner.style.transform = "rotateY(" + (px * 24) + "deg) rotateX(" + (py * -24) + "deg)";
+    });
+    tiltEl.addEventListener("mouseleave", function () {
+      tiltInner.style.transform = "rotateY(0deg) rotateX(0deg)";
+    });
+  }
   var isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
   document.documentElement.classList.add("reveal-ready");

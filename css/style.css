@@ -1702,3 +1702,17 @@ a.contact-link:focus-visible span:first-child::after{ right:0; }
   .profile-orbit{ animation:none; }
   .profile-particles span{ animation:none; }
 }
+.work {
+  background: #f7f7f5;
+  color: #171717;
+}
+
+.work .terminal-frame {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.work .terminal-bar {
+  background: #f1f1ee;
+  border-color: rgba(0, 0, 0, 0.1);
+}

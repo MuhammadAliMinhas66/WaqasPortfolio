@@ -42,7 +42,6 @@
     <ul>
       <li><a href="#work">Work</a></li>
       <li><a href="#lab">Lab</a></li>
-      <li><a href="#highlights">Highlights</a></li>
       <li><a href="#capabilities">Capabilities</a></li>
       <li><a href="#experience">Experience</a></li>
       <li><a href="#datascience">Data Science</a></li>
@@ -103,70 +102,53 @@
     </div>
   </section>
 
-  <!-- SECTION 1 — THE IDEA -->
-  <section class="idea" id="idea" aria-label="Working philosophy">
-    <div class="idea-intro">
+  <!-- SECTION 1 — THE PIPELINE (signature pinned scroll sequence) -->
+  <section class="flow" id="idea" aria-label="How raw data becomes a decision">
+    <div class="flow-intro">
       <h2 class="section-title">
         <span data-reveal>Raw data isn't the product.</span>
         <span class="accent" data-reveal>The decision is.</span>
       </h2>
-      <p class="idea-copy" data-reveal>
+      <p class="flow-copy" data-reveal>
         Every report starts messy — half-typed fields, mismatched IDs, a
         spreadsheet three people edited differently. Getting to a number a
         manager can trust is the actual job.
       </p>
     </div>
 
-    <div class="pipeline" data-pipeline aria-roledescription="carousel" aria-label="The four-step data pipeline">
-      <div class="pipeline-loop" aria-hidden="true">
-        <span class="loop-circle"></span>
-        <span class="loop-orbit"><span class="loop-orbit-dot"></span></span>
-      </div>
+    <div class="flow-pin" data-flow-pin>
+      <div class="flow-stage">
+        <span class="flow-ghost" data-flow-ghost aria-hidden="true">01</span>
 
-      <div class="pipeline-track" data-pipeline-track tabindex="0" aria-label="Use arrow keys, drag, or swipe to browse">
-        <ul class="pipeline-list" role="list">
-          <li class="pipeline-card is-active" data-pipeline-card>
-            <div class="pipeline-card-inner">
-              <span class="pipeline-num">01</span>
-              <h3 class="pipeline-title">Ingestion</h3>
-              <p class="pipeline-desc">Pulling raw records from source systems, exports and forms.</p>
-            </div>
+        <ul class="flow-panels" data-flow-panels role="list">
+          <li class="flow-panel is-active" data-flow-panel>
+            <h3 class="flow-panel-title">Ingestion</h3>
+            <p class="flow-panel-desc">Pulling raw records from source systems, exports and forms — the state data actually arrives in.</p>
           </li>
-          <li class="pipeline-card" data-pipeline-card>
-            <div class="pipeline-card-inner">
-              <span class="pipeline-num">02</span>
-              <h3 class="pipeline-title">Cleaning</h3>
-              <p class="pipeline-desc">Fixing type mismatches, duplicates and inconsistent entries.</p>
-            </div>
+          <li class="flow-panel" data-flow-panel>
+            <h3 class="flow-panel-title">Cleaning</h3>
+            <p class="flow-panel-desc">Fixing type mismatches, duplicates and inconsistent entries before anything gets counted.</p>
           </li>
-          <li class="pipeline-card" data-pipeline-card>
-            <div class="pipeline-card-inner">
-              <span class="pipeline-num">03</span>
-              <h3 class="pipeline-title">Transformation</h3>
-              <p class="pipeline-desc">Reshaping tables so they answer the questions being asked of them.</p>
-            </div>
+          <li class="flow-panel" data-flow-panel>
+            <h3 class="flow-panel-title">Transformation</h3>
+            <p class="flow-panel-desc">Reshaping tables so they answer the question actually being asked of them.</p>
           </li>
-          <li class="pipeline-card" data-pipeline-card>
-            <div class="pipeline-card-inner">
-              <span class="pipeline-num">04</span>
-              <h3 class="pipeline-title">Modeling</h3>
-              <p class="pipeline-desc">Relating tables correctly so measures calculate the right thing.</p>
-            </div>
+          <li class="flow-panel" data-flow-panel>
+            <h3 class="flow-panel-title">Modeling</h3>
+            <p class="flow-panel-desc">Relating tables correctly so every measure calculates the right thing, every time.</p>
+          </li>
+          <li class="flow-panel" data-flow-panel>
+            <h3 class="flow-panel-title">Decision</h3>
+            <p class="flow-panel-desc">Handed back as a number someone can act on — that's the point of the other four steps.</p>
           </li>
         </ul>
-      </div>
 
-      <div class="work-slider-controls pipeline-controls">
-        <button class="slider-btn" type="button" data-pipeline-prev aria-label="Previous step">
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3 5 8l5 5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="slider-count" aria-hidden="true">
-          <span data-pipeline-current>01</span> / <span data-pipeline-total>04</span>
+        <div class="flow-rail" aria-hidden="true">
+          <span class="flow-rail-fill" data-flow-rail-fill></span>
         </div>
-        <button class="slider-btn" type="button" data-pipeline-next aria-label="Next step">
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="slider-track-bar" aria-hidden="true"><span data-pipeline-progress></span></div>
+        <div class="flow-count" aria-hidden="true">
+          <span data-flow-current>01</span> / <span data-flow-total>05</span>
+        </div>
       </div>
     </div>
   </section>
@@ -545,51 +527,6 @@
     </div>
   </section>
 
-  <!-- SECTION — HORIZONTAL RECAP -->
-  <section class="highlights" id="highlights" data-highlights aria-label="Quick recap, scroll to browse horizontally">
-    <div class="highlights-heading">
-      <h2 class="section-title section-title--small">
-        <span data-reveal>The whole story,</span>
-        <span class="accent" data-reveal>compressed.</span>
-      </h2>
-      <p class="highlights-hint" data-reveal><span class="highlights-hint-arrow">→</span> Keep scrolling</p>
-    </div>
-
-    <div class="highlights-track" data-highlights-track>
-
-      <article class="highlight-panel">
-        <span class="pipeline-num">Work</span>
-        <h3 class="pipeline-title">6 dashboards, live</h3>
-        <p class="pipeline-desc">Logistics, retail, hospital operations, product performance, public data and content — shown as approach, not client deliverables.</p>
-      </article>
-
-      <article class="highlight-panel">
-        <span class="pipeline-num">Lab</span>
-        <h3 class="pipeline-title">8 practice builds</h3>
-        <p class="pipeline-desc">Payroll, salary bands, a second retail chain, and the same report rebuilt in Excel instead of Power BI — deliberately rougher.</p>
-      </article>
-
-      <article class="highlight-panel">
-        <span class="pipeline-num">Capabilities</span>
-        <h3 class="pipeline-title">Data → Signal</h3>
-        <p class="pipeline-desc">SQL and ETL for the data layer, Power BI and DAX for the semantic layer, Python when a question needs code.</p>
-      </article>
-
-      <article class="highlight-panel">
-        <span class="pipeline-num">Experience</span>
-        <h3 class="pipeline-title">Daewoo FastEx</h3>
-        <p class="pipeline-desc">Data Analyst since Oct 2025, after a year freelancing. BSCS from COMSATS University, 2020–2024.</p>
-      </article>
-
-      <article class="highlight-panel highlight-panel--cta">
-        <span class="pipeline-num">Proof</span>
-        <h3 class="pipeline-title">14 · 7 · 2 · 1.5+</h3>
-        <p class="pipeline-desc">Dashboards, industries, certifications, years. Scroll back up for any of it, or keep going for how he actually thinks.</p>
-      </article>
-
-    </div>
-  </section>
-
   <!-- SECTION 5 — HOW HE THINKS / THE ANALYTICAL LOOP -->
   <section class="loop" id="loop" aria-label="How he approaches a problem">
     <div class="loop-pin" data-loop-pin>
@@ -833,8 +770,6 @@
   <p class="footer-year">© 2026</p>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/main.js"></script>

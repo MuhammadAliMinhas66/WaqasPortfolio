@@ -541,16 +541,20 @@ p{ margin:0; }
    SHARED SECTION SPACING
    ========================================================= */
 section{ position: relative; padding: clamp(84px, 12vw, 156px) var(--edge); scroll-margin-top: 96px; }
-.idea, .capabilities, .work, .lab, .experience, .datascience, .profile, .assistant, .proof{
+.flow, .capabilities, .work, .lab, .experience, .datascience, .profile, .assistant, .proof{
   max-width: var(--container);
   margin: 0 auto;
 }
 
 /* =========================================================
-   SECTION 1 — IDEA / LIFECYCLE
+   SECTION 1 — THE PIPELINE (signature pinned scroll sequence)
+   A full-bleed numeral sits behind the copy; each stage wipes
+   in over the last as the page scrolls, with a rail underneath
+   tracking progress. One bold, deliberate motion moment rather
+   than a row of matching cards.
    ========================================================= */
-.idea-intro{ max-width: 680px; margin-bottom: clamp(52px, 8vw, 92px); }
-.idea-copy{
+.flow-intro{ max-width: 680px; margin-bottom: clamp(48px, 7vw, 80px); }
+.flow-copy{
   margin-top: 20px;
   color: var(--ink-dim);
   font-size: 1.02rem;
@@ -558,146 +562,127 @@ section{ position: relative; padding: clamp(84px, 12vw, 156px) var(--edge); scro
   line-height: 1.6;
 }
 
-.pipeline{
+.flow-pin{ position: relative; }
+
+.flow-stage{
   position: relative;
-}
-
-/* ---------- analytical loop — rotating ring, pulsing nodes, scan line ---------- */
-.pipeline-loop{
-  position: absolute;
-  top: -34px;
-  right: clamp(4px, 3vw, 28px);
-  width: 108px;
-  height: 108px;
-  pointer-events: none;
-  z-index: 1;
-}
-.loop-circle{
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px solid var(--bg-line);
-}
-.loop-circle::before{
-  content:"";
-  position:absolute;
-  inset: 22px;
-  border-radius: 50%;
-  border: 1px dashed var(--accent-dim);
-  opacity: 0.5;
-}
-.loop-orbit{
-  position:absolute;
-  inset:0;
-  animation: loop-spin 7s linear infinite;
-  animation-play-state: paused;
-}
-.loop-orbit-dot{
-  position:absolute;
-  top: -4px;
-  left: 50%;
-  width: 8px; height: 8px;
-  margin-left: -4px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 5px rgba(91,92,255,0.14), 0 0 14px 2px rgba(91,92,255,0.5);
-}
-.pipeline.is-in-view .loop-orbit{ animation-play-state: running; }
-@keyframes loop-spin{ to{ transform: rotate(360deg); } }
-@media (max-width: 720px){ .pipeline-loop{ display: none; } }
-
-/* ---------- slider track ---------- */
-.pipeline-track{
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  cursor: grab;
-  margin: 0 calc(var(--edge) * -1);
-  padding: 10px var(--edge) 18px;
-}
-.pipeline-track::-webkit-scrollbar{ display: none; }
-.pipeline-track.is-dragging{ cursor: grabbing; scroll-snap-type: none; }
-.pipeline-track:focus-visible{ outline: 1.5px solid var(--accent-dim); outline-offset: 6px; border-radius: 22px; }
-
-.pipeline-list{
+  min-height: min(72vh, 620px);
   display: flex;
-  gap: clamp(18px, 2.4vw, 28px);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.pipeline-card{
-  position: relative;
-  flex: 0 0 auto;
-  width: min(78vw, 360px);
-  scroll-snap-align: center;
-  border-radius: 20px;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(91,92,255,0.4), rgba(255,255,255,0.75) 45%, rgba(91,92,255,0.15));
-  box-shadow: 0 24px 50px -32px rgba(20,20,14,0.35);
-  transition: transform .5s var(--ease), box-shadow .5s var(--ease), background .5s var(--ease);
-}
-.pipeline-card-inner{
-  position: relative;
-  height: 100%;
-  background:
-    linear-gradient(160deg, rgba(255,255,255,0.55), transparent 55%),
-    linear-gradient(165deg, rgba(255,255,255,0.82), rgba(255,255,255,0.58));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-radius: 19px;
-  padding: clamp(28px, 3.6vw, 38px) clamp(26px, 3vw, 34px);
+  align-items: center;
   overflow: hidden;
 }
-.pipeline-card-inner::after{
-  content: "";
+
+.flow-ghost{
   position: absolute;
-  top: -60%;
-  right: -30%;
-  width: 60%;
-  height: 160%;
-  background: radial-gradient(circle, rgba(91,92,255,0.10), transparent 65%);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(9rem, 26vw, 22rem);
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--bg-line);
+  user-select: none;
+  z-index: 0;
+  will-change: transform;
+}
+
+.flow-panels{
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: grid;
+}
+.flow-panel{
+  grid-column: 1;
+  grid-row: 1;
+  max-width: 46ch;
+  clip-path: inset(0 0 100% 0);
   opacity: 0;
-  transition: opacity .5s var(--ease);
+  transform: translateY(28px);
+  transition: clip-path .85s var(--ease), opacity .6s var(--ease), transform .85s var(--ease);
   pointer-events: none;
 }
-.pipeline-num{
-  display: block;
-  font-family: var(--font-mono);
-  color: var(--ink-faint);
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
-  margin-bottom: 22px;
-  transition: color .4s ease;
+.flow-panel.is-active{
+  clip-path: inset(0 0 0% 0);
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
-.pipeline-title{
+.flow-panel-title{
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 2.1vw, 1.7rem);
-  font-weight: 600;
-  margin: 0 0 12px;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 16px;
 }
-.pipeline-desc{
+.flow-panel-desc{
   color: var(--ink-dim);
-  font-size: 0.92rem;
-  line-height: 1.55;
-  max-width: 30ch;
+  font-size: 1.05rem;
+  line-height: 1.6;
   margin: 0;
 }
 
-.pipeline-card.is-active{
-  transform: translateY(-6px) scale(1.015);
-  background: linear-gradient(135deg, rgba(91,92,255,0.85), rgba(255,255,255,0.9) 45%, rgba(91,92,255,0.5));
-  box-shadow: 0 30px 60px -28px rgba(91,92,255,0.28), 0 24px 50px -32px rgba(20,20,14,0.4);
+.flow-rail{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--bg-line);
+  z-index: 1;
 }
-.pipeline-card.is-active .pipeline-num{ color: var(--accent); }
-.pipeline-card.is-active .pipeline-card-inner::after{ opacity: 1; }
+.flow-rail-fill{
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transform-origin: left;
+}
+.flow-count{
+  position: absolute;
+  right: 0;
+  bottom: 16px;
+  z-index: 1;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
 
-@media (max-width: 560px){
-  .pipeline-card{ width: 82vw; }
+@media (max-width: 899px){
+  /* below the pin breakpoint this becomes a normal stacked read —
+     pin-and-scrub tends to feel broken on small touch screens */
+  .flow-stage{ min-height: 0; display: block; }
+  .flow-ghost{ display: none; }
+  .flow-panels{ display: flex; flex-direction: column; gap: clamp(32px, 8vw, 48px); }
+  .flow-panel{
+    position: static;
+    max-width: none;
+    clip-path: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    padding-bottom: clamp(28px, 7vw, 40px);
+    border-bottom: 1px solid var(--bg-line);
+  }
+  .flow-panel:last-child{ border-bottom: none; padding-bottom: 0; }
+  .flow-rail, .flow-count{ display: none; }
 }
+/* same fallback, applied via JS when reduced motion is on regardless of width */
+.flow.is-static .flow-stage{ min-height: 0; display: block; }
+.flow.is-static .flow-ghost{ display: none; }
+.flow.is-static .flow-panels{ display: flex; flex-direction: column; gap: clamp(32px, 8vw, 48px); }
+.flow.is-static .flow-panel{
+  position: static;
+  max-width: none;
+  clip-path: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  padding-bottom: clamp(28px, 7vw, 40px);
+  border-bottom: 1px solid var(--bg-line);
+}
+.flow.is-static .flow-panel:last-child{ border-bottom: none; padding-bottom: 0; }
+.flow.is-static .flow-rail, .flow.is-static .flow-count{ display: none; }
 
 /* =========================================================
    SECTION 2 — CAPABILITIES
@@ -921,106 +906,6 @@ section{ position: relative; padding: clamp(84px, 12vw, 156px) var(--edge); scro
 }
 .lab-tile{ width: auto; }
 .lab-tile .work-frame{ aspect-ratio: 5 / 4; }
-
-/* =========================================================
-   HORIZONTAL RECAP (GSAP pin + scrub — see main.js)
-   ========================================================= */
-.highlights{
-  overflow: hidden;
-  padding-top: clamp(64px, 9vw, 110px);
-  padding-bottom: clamp(64px, 9vw, 110px);
-  min-height: 100vh;
-  display:flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.highlights-heading{
-  max-width: var(--container);
-  margin: 0 auto;
-  padding: 0 var(--edge);
-  width: 100%;
-  display:flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: clamp(40px, 6vw, 72px);
-}
-.highlights-hint{
-  display:flex;
-  align-items:center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--ink-faint);
-  white-space: nowrap;
-  padding-bottom: 6px;
-}
-.highlights-hint-arrow{
-  display:inline-block;
-  color: var(--accent);
-  animation: hint-nudge 1.6s ease-in-out infinite;
-}
-@keyframes hint-nudge{
-  0%,100%{ transform: translateX(0); }
-  50%{ transform: translateX(6px); }
-}
-
-.highlights-track{
-  display:flex;
-  gap: clamp(20px, 2.6vw, 32px);
-  width: max-content;
-  padding: 0 var(--edge);
-  will-change: transform;
-}
-
-.highlight-panel{
-  position: relative;
-  flex: 0 0 auto;
-  width: min(78vw, 400px);
-  min-height: 320px;
-  border-radius: 20px;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(91,92,255,0.4), rgba(255,255,255,0.75) 45%, rgba(91,92,255,0.15));
-  box-shadow: 0 24px 50px -32px rgba(20,20,14,0.35);
-}
-.highlight-panel::before{
-  content:"";
-  position: absolute;
-  inset: 1px;
-  border-radius: 19px;
-  background:
-    linear-gradient(160deg, rgba(255,255,255,0.55), transparent 55%),
-    linear-gradient(165deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-.highlight-panel > *{ position: relative; z-index: 1; }
-.highlight-panel{
-  display:flex;
-  flex-direction: column;
-  padding: clamp(28px, 3.6vw, 38px) clamp(26px, 3vw, 34px);
-}
-.highlight-panel .pipeline-num{ margin-bottom: 26px; }
-.highlight-panel .pipeline-title{ font-size: clamp(1.5rem, 2.3vw, 1.9rem); }
-.highlight-panel .pipeline-desc{ max-width: none; }
-.highlight-panel--cta{
-  background: linear-gradient(135deg, rgba(91,92,255,0.85), rgba(255,255,255,0.9) 45%, rgba(91,92,255,0.5));
-}
-.highlight-panel--cta .pipeline-num{ color: var(--accent); }
-
-@media (max-width: 899px){
-  /* below the pin breakpoint (see main.js matchMedia) this becomes a
-     normal swipeable row, same pattern as the Work slider */
-  .highlights{ min-height: 0; }
-  .highlights-track{
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    margin: 0 calc(var(--edge) * -1);
-  }
-  .highlights-track::-webkit-scrollbar{ display:none; }
-  .highlight-panel{ scroll-snap-align: start; }
-}
 
 /* ---------- slider controls ---------- */
 .work-slider-controls{
@@ -1727,6 +1612,6 @@ a.contact-link:focus-visible span:first-child::after{ right:0; }
     scroll-behavior: auto !important;
   }
   [data-reveal]{ opacity:1; transform:none; }
-  .pipeline-card{ transform:none; }
+  .flow-panel{ clip-path:none; opacity:1; transform:none; }
   .loop-sequence li{ opacity:1; transform:none; color: var(--ink); }
 }

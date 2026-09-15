@@ -297,43 +297,6 @@
   }
 
   /* ---------------------------------------------------------
-     HORIZONTAL RECAP — pins the section and translates the
-     track sideways as the page scrolls vertically, so the
-     recap panels play out like a mini scrollytelling strip.
-     Only runs above 900px: below that it's a normal swipeable
-     row (see the matching CSS media query), since pin-scrub
-     patterns tend to feel janky on small touch screens.
-     --------------------------------------------------------- */
-  if (window.gsap && window.ScrollTrigger) {
-    gsap.registerPlugin(ScrollTrigger);
-    var highlightsSection = document.querySelector("[data-highlights]");
-    var highlightsTrack = document.querySelector("[data-highlights-track]");
-
-    if (highlightsSection && highlightsTrack) {
-      var mm = gsap.matchMedia();
-      mm.add("(min-width: 900px)", function () {
-        var getScrollDistance = function () {
-          return Math.max(0, highlightsTrack.scrollWidth - highlightsSection.clientWidth);
-        };
-        var tween = gsap.to(highlightsTrack, {
-          x: function () { return -getScrollDistance(); },
-          ease: "none",
-          scrollTrigger: {
-            trigger: highlightsSection,
-            start: "top top",
-            end: function () { return "+=" + getScrollDistance(); },
-            scrub: 0.6,
-            pin: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true
-          }
-        });
-        return function () { tween.scrollTrigger && tween.scrollTrigger.kill(); tween.kill(); };
-      });
-    }
-  }
-
-  /* ---------------------------------------------------------
      MAGNETIC BUTTONS — primary/secondary CTAs pull gently
      toward the cursor within their bounds, snapping back on
      leave. GSAP quickTo gives it a springy, damped feel.
@@ -396,114 +359,61 @@
   }
 
   /* ---------------------------------------------------------
-     PIPELINE SLIDER — "Raw data isn't the product" section.
-     Native scroll-snap drives touch/trackpad swipe; buttons,
-     arrow keys and click-drag (for desktop mice) all move the
-     same scroll position, so everything stays in sync through
-     one scroll-listener that updates the active card, counter
-     and progress bar. The ring/node/scan "analytical loop" is
-     purely decorative and only animates while the section is
-     actually on screen (via IntersectionObserver), so it reads
-     as a triggered effect rather than something always spinning.
+     THE PIPELINE — "Raw data isn't the product" section.
+     Pins the section and scrubs through five stages as one
+     tied-to-scroll sequence: each stage wipes in over the
+     last (clip-path), a giant background numeral and a rail
+     underneath both track progress continuously. Below 900px,
+     or with reduced motion, it drops the pin and reads as a
+     normal stacked list instead (see the matching CSS).
      --------------------------------------------------------- */
-  var pipeline = document.querySelector("[data-pipeline]");
-  var pipelineTrack = document.querySelector("[data-pipeline-track]");
-  if (pipeline && pipelineTrack) {
-    var pipelineList = pipelineTrack.querySelector(".pipeline-list");
-    var pipelineCards = Array.prototype.slice.call(pipelineTrack.querySelectorAll("[data-pipeline-card]"));
-    var pPrev = document.querySelector("[data-pipeline-prev]");
-    var pNext = document.querySelector("[data-pipeline-next]");
-    var pCurrent = document.querySelector("[data-pipeline-current]");
-    var pTotal = document.querySelector("[data-pipeline-total]");
-    var pProgress = document.querySelector("[data-pipeline-progress]");
+  var flowSection = document.querySelector(".flow");
+  var flowPin = document.querySelector("[data-flow-pin]");
+  var flowPanels = Array.prototype.slice.call(document.querySelectorAll("[data-flow-panel]"));
+  var flowGhost = document.querySelector("[data-flow-ghost]");
+  var flowRailFill = document.querySelector("[data-flow-rail-fill]");
+  var flowCurrent = document.querySelector("[data-flow-current]");
+  var flowTotal = document.querySelector("[data-flow-total]");
 
-    if (pTotal) pTotal.textContent = String(pipelineCards.length).padStart(2, "0");
+  if (flowSection && flowPin && flowPanels.length) {
+    if (flowTotal) flowTotal.textContent = String(flowPanels.length).padStart(2, "0");
 
-    var pStep = function () {
-      var first = pipelineCards[0];
-      var gap = parseFloat(getComputedStyle(pipelineList).columnGap || getComputedStyle(pipelineList).gap || "24");
-      return first.getBoundingClientRect().width + gap;
-    };
-    var pIndex = function () {
-      return Math.round(pipelineTrack.scrollLeft / pStep());
-    };
-    var pUpdate = function () {
-      var idx = Math.max(0, Math.min(pipelineCards.length - 1, pIndex()));
-      pipelineCards.forEach(function (card, i) { card.classList.toggle("is-active", i === idx); });
-      if (pCurrent) pCurrent.textContent = String(idx + 1).padStart(2, "0");
-      if (pProgress) {
-        pProgress.style.width = (100 / pipelineCards.length) + "%";
-        pProgress.style.transform = "translateX(" + idx * 100 + "%)";
-      }
-      var atStart = pipelineTrack.scrollLeft <= 4;
-      var atEnd = pipelineTrack.scrollLeft + pipelineTrack.clientWidth >= pipelineTrack.scrollWidth - 4;
-      if (pPrev) pPrev.disabled = atStart;
-      if (pNext) pNext.disabled = atEnd;
-    };
-    var pGoTo = function (idx) {
-      idx = Math.max(0, Math.min(pipelineCards.length - 1, idx));
-      pipelineTrack.scrollTo({ left: idx * pStep(), behavior: reduceMotion ? "auto" : "smooth" });
+    var setFlowStage = function (idx) {
+      flowPanels.forEach(function (panel, i) { panel.classList.toggle("is-active", i === idx); });
+      if (flowGhost) flowGhost.textContent = String(idx + 1).padStart(2, "0");
+      if (flowCurrent) flowCurrent.textContent = String(idx + 1).padStart(2, "0");
+      if (flowRailFill) flowRailFill.style.width = (((idx + 1) / flowPanels.length) * 100) + "%";
     };
 
-    if (pPrev) pPrev.addEventListener("click", function () { pGoTo(pIndex() - 1); });
-    if (pNext) pNext.addEventListener("click", function () { pGoTo(pIndex() + 1); });
-
-    var pTicking = false;
-    pipelineTrack.addEventListener("scroll", function () {
-      if (!pTicking) {
-        requestAnimationFrame(function () { pUpdate(); pTicking = false; });
-        pTicking = true;
-      }
-    }, { passive: true });
-
-    // keyboard navigation when the track itself has focus
-    pipelineTrack.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowRight") { pGoTo(pIndex() + 1); e.preventDefault(); }
-      if (e.key === "ArrowLeft") { pGoTo(pIndex() - 1); e.preventDefault(); }
-    });
-
-    // click-and-drag for desktop mice — touch/trackpad already scroll natively
-    var pDragging = false, pDragStartX = 0, pDragStartScroll = 0, pDragMoved = false;
-    pipelineTrack.addEventListener("pointerdown", function (e) {
-      if (e.pointerType === "touch") return;
-      pDragging = true;
-      pDragMoved = false;
-      pDragStartX = e.clientX;
-      pDragStartScroll = pipelineTrack.scrollLeft;
-      pipelineTrack.classList.add("is-dragging");
-      pipelineTrack.setPointerCapture(e.pointerId);
-    });
-    pipelineTrack.addEventListener("pointermove", function (e) {
-      if (!pDragging) return;
-      var dx = e.clientX - pDragStartX;
-      if (Math.abs(dx) > 4) pDragMoved = true;
-      pipelineTrack.scrollLeft = pDragStartScroll - dx;
-    });
-    var pEndDrag = function () {
-      if (!pDragging) return;
-      pDragging = false;
-      pipelineTrack.classList.remove("is-dragging");
-      if (pDragMoved) pGoTo(pIndex()); // snap to the nearest card
-    };
-    pipelineTrack.addEventListener("pointerup", pEndDrag);
-    pipelineTrack.addEventListener("pointercancel", pEndDrag);
-    pipelineTrack.addEventListener("pointerleave", function () { if (pDragging) pEndDrag(); });
-    pipelineTrack.addEventListener("dragstart", function (e) { e.preventDefault(); });
-
-    window.addEventListener("resize", pUpdate);
-    pUpdate();
-    attachWheelToHorizontal(pipelineTrack);
-
-    // analytical-loop decoration only plays while the section is visible
-    if ("IntersectionObserver" in window) {
-      var loopIO = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          pipeline.classList.toggle("is-in-view", entry.isIntersecting);
+    if (window.gsap && window.ScrollTrigger && !reduceMotion) {
+      gsap.registerPlugin(ScrollTrigger);
+      var flowMM = gsap.matchMedia();
+      flowMM.add("(min-width: 900px)", function () {
+        var trigger = ScrollTrigger.create({
+          trigger: flowSection,
+          start: "top top",
+          end: "+=" + (flowPanels.length * 65) + "%",
+          pin: flowPin,
+          scrub: 0.6,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: function (self) {
+            var p = self.progress;
+            var idx = Math.min(flowPanels.length - 1, Math.floor(p * flowPanels.length));
+            setFlowStage(idx);
+            if (flowGhost) {
+              var drift = (p * 36 - 18).toFixed(1);
+              flowGhost.style.transform = "translate(calc(-50% + " + drift + "px), -50%)";
+            }
+            if (flowRailFill) flowRailFill.style.width = (p * 100) + "%";
+          }
         });
-      }, { threshold: 0.25 });
-      loopIO.observe(pipeline);
+        setFlowStage(0);
+        return function () { trigger.kill(); };
+      });
     } else {
-      pipeline.classList.add("is-in-view");
+      // reduced motion / no GSAP: static stacked read, everything visible
+      flowSection.classList.add("is-static");
     }
   }
 

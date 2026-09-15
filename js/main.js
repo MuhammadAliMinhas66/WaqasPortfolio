@@ -143,6 +143,42 @@
   }
 
   /* ---------------------------------------------------------
+     SPLIT-CHARACTER REVEAL — for [data-split] elements (the
+     "Digital Me." heading). Wraps each character in its own
+     span so a staggered fade/rise/blur-in can run once the
+     element scrolls into view.
+     --------------------------------------------------------- */
+  var splitEls = Array.prototype.slice.call(document.querySelectorAll("[data-split]"));
+  if (splitEls.length) {
+    splitEls.forEach(function (el) {
+      var text = el.textContent;
+      el.textContent = "";
+      el.setAttribute("aria-label", text);
+      Array.prototype.forEach.call(text, function (ch, i) {
+        var span = document.createElement("span");
+        span.className = "split-char";
+        span.style.setProperty("--i", i);
+        span.textContent = ch === " " ? "\u00A0" : ch;
+        span.setAttribute("aria-hidden", "true");
+        el.appendChild(span);
+      });
+    });
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      splitEls.forEach(function (el) { el.classList.add("is-in"); });
+    } else {
+      var splitIO = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            splitIO.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.4, rootMargin: "0px 0px -10% 0px" });
+      splitEls.forEach(function (el) { splitIO.observe(el); });
+    }
+  }
+
+  /* ---------------------------------------------------------
      DIGITAL ME AVATAR — subtle cursor-reactive tilt
      --------------------------------------------------------- */
   var tiltEl = document.querySelector("[data-tilt]");
@@ -440,62 +476,54 @@
   }
 
   /* ---------------------------------------------------------
-     WORK SLIDER — single-line, arrow + swipe navigation
+     WORK SLIDER — infinite auto-scrolling marquee. The original
+     item set is cloned once; the clone is marked inert/aria-hidden
+     so it never duplicates lightbox triggers or tab stops. The
+     track then animates via CSS (translateX 0 -> -50%), which is
+     an exact one-set repeat because the CSS gives each set a
+     trailing margin instead of a flex gap between sets. JS just
+     measures the real set's width to pick a natural, constant
+     scroll speed, and pauses on hover/focus/touch and whenever
+     the lightbox is open.
      --------------------------------------------------------- */
   var slider = document.querySelector("[data-slider]");
   var sliderTrack = document.querySelector("[data-slider-track]");
-  if (slider && sliderTrack) {
-    var slides = Array.prototype.slice.call(sliderTrack.querySelectorAll(".work-item"));
-    var prevBtn = document.querySelector("[data-slider-prev]");
-    var nextBtn = document.querySelector("[data-slider-next]");
-    var currentEl = document.querySelector("[data-slider-current]");
-    var totalEl = document.querySelector("[data-slider-total]");
-    var progressEl = document.querySelector("[data-slider-progress]");
+  var trackSet = document.querySelector("[data-track-set]");
+  if (slider && sliderTrack && trackSet && !reduceMotion) {
+    var MARQUEE_PX_PER_SEC = 46;
 
-    if (totalEl) totalEl.textContent = String(slides.length).padStart(2, "0");
-
-    var slideStep = function () {
-      var first = slides[0];
-      var gap = parseFloat(getComputedStyle(sliderTrack).columnGap || getComputedStyle(sliderTrack).gap || "24");
-      return first.getBoundingClientRect().width + gap;
+    var makeInert = function (el) {
+      el.setAttribute("aria-hidden", "true");
+      var focusable = el.querySelectorAll("[data-slide-trigger], a, button, [tabindex]");
+      Array.prototype.forEach.call(focusable, function (f) {
+        f.removeAttribute("data-slide-trigger");
+        f.setAttribute("tabindex", "-1");
+      });
     };
 
-    var currentIndex = function () {
-      var step = slideStep();
-      return Math.round(sliderTrack.scrollLeft / step);
+    var clone = trackSet.cloneNode(true);
+    clone.removeAttribute("data-track-set");
+    makeInert(clone);
+    sliderTrack.appendChild(clone);
+
+    var applyDuration = function () {
+      var width = trackSet.getBoundingClientRect().width;
+      var duration = Math.max(12, width / MARQUEE_PX_PER_SEC);
+      sliderTrack.style.setProperty("--marquee-duration", duration + "s");
     };
+    applyDuration();
+    window.addEventListener("resize", applyDuration);
 
-    var updateSliderUI = function () {
-      var idx = Math.max(0, Math.min(slides.length - 1, currentIndex()));
-      if (currentEl) currentEl.textContent = String(idx + 1).padStart(2, "0");
-      if (progressEl) {
-        progressEl.style.width = (100 / slides.length) + "%";
-        progressEl.style.transform = "translateX(" + idx * 100 + "%)";
-      }
-      var atStart = sliderTrack.scrollLeft <= 4;
-      var atEnd = sliderTrack.scrollLeft + sliderTrack.clientWidth >= sliderTrack.scrollWidth - 4;
-      if (prevBtn) prevBtn.disabled = atStart;
-      if (nextBtn) nextBtn.disabled = atEnd;
-    };
+    slider.classList.add("is-marquee");
 
-    var goTo = function (idx) {
-      idx = Math.max(0, Math.min(slides.length - 1, idx));
-      sliderTrack.scrollTo({ left: idx * slideStep(), behavior: reduceMotion ? "auto" : "smooth" });
-    };
-
-    if (prevBtn) prevBtn.addEventListener("click", function () { goTo(currentIndex() - 1); });
-    if (nextBtn) nextBtn.addEventListener("click", function () { goTo(currentIndex() + 1); });
-
-    var sliderTicking = false;
-    sliderTrack.addEventListener("scroll", function () {
-      if (!sliderTicking) {
-        requestAnimationFrame(function () { updateSliderUI(); sliderTicking = false; });
-        sliderTicking = true;
-      }
+    // pause on hover/focus is handled in CSS (:hover / :focus-within);
+    // also pause explicitly on touch, since touch devices have no hover
+    slider.addEventListener("touchstart", function () { slider.classList.add("is-paused"); }, { passive: true });
+    slider.addEventListener("touchend", function () {
+      window.setTimeout(function () { slider.classList.remove("is-paused"); }, 1200);
     }, { passive: true });
-
-    window.addEventListener("resize", updateSliderUI);
-    updateSliderUI();
+  } else if (slider) {
+    // reduced motion: keep it a plain swipeable/scrollable strip
     attachWheelToHorizontal(sliderTrack);
   }
 
@@ -539,6 +567,7 @@
       lightbox.setAttribute("data-open", "true");
       lightbox.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
+      if (slider) slider.classList.add("is-paused");
       if (lbClose) lbClose.focus();
     };
 
@@ -546,6 +575,7 @@
       lightbox.setAttribute("data-open", "false");
       lightbox.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
+      if (slider) slider.classList.remove("is-paused");
       if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
     };
 

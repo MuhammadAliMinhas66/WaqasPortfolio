@@ -640,15 +640,6 @@ section{ position: relative; padding: clamp(84px, 12vw, 156px) var(--edge); scro
   background: var(--accent);
   transform-origin: left;
 }
-.flow-count{
-  position: absolute;
-  right: 0;
-  bottom: 16px;
-  z-index: 1;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--ink-faint);
-}
 
 @media (max-width: 899px){
   /* below the pin breakpoint this becomes a normal stacked read —
@@ -666,7 +657,7 @@ section{ position: relative; padding: clamp(84px, 12vw, 156px) var(--edge); scro
     border-bottom: 1px solid var(--bg-line);
   }
   .flow-panel:last-child{ border-bottom: none; padding-bottom: 0; }
-  .flow-rail, .flow-count{ display: none; }
+  .flow-rail{ display: none; }
 }
 /* same fallback, applied via JS when reduced motion is on regardless of width */
 .flow.is-static .flow-stage{ min-height: 0; display: block; }
@@ -682,7 +673,7 @@ section{ position: relative; padding: clamp(84px, 12vw, 156px) var(--edge); scro
   border-bottom: 1px solid var(--bg-line);
 }
 .flow.is-static .flow-panel:last-child{ border-bottom: none; padding-bottom: 0; }
-.flow.is-static .flow-rail, .flow.is-static .flow-count{ display: none; }
+.flow.is-static .flow-rail{ display: none; }
 
 /* =========================================================
    SECTION 2 — CAPABILITIES

@@ -372,28 +372,25 @@
   var flowPanels = Array.prototype.slice.call(document.querySelectorAll("[data-flow-panel]"));
   var flowGhost = document.querySelector("[data-flow-ghost]");
   var flowRailFill = document.querySelector("[data-flow-rail-fill]");
-  var flowCurrent = document.querySelector("[data-flow-current]");
-  var flowTotal = document.querySelector("[data-flow-total]");
 
   if (flowSection && flowPin && flowPanels.length) {
-    if (flowTotal) flowTotal.textContent = String(flowPanels.length).padStart(2, "0");
-
     var setFlowStage = function (idx) {
       flowPanels.forEach(function (panel, i) { panel.classList.toggle("is-active", i === idx); });
       if (flowGhost) flowGhost.textContent = String(idx + 1).padStart(2, "0");
-      if (flowCurrent) flowCurrent.textContent = String(idx + 1).padStart(2, "0");
-      if (flowRailFill) flowRailFill.style.width = (((idx + 1) / flowPanels.length) * 100) + "%";
     };
 
     if (window.gsap && window.ScrollTrigger && !reduceMotion) {
       gsap.registerPlugin(ScrollTrigger);
       var flowMM = gsap.matchMedia();
       flowMM.add("(min-width: 900px)", function () {
+        // trigger === pin target (not the wider section, which also
+        // includes the heading above it) so the pin engages exactly
+        // when the stage itself reaches the top of the viewport
         var trigger = ScrollTrigger.create({
-          trigger: flowSection,
+          trigger: flowPin,
           start: "top top",
-          end: "+=" + (flowPanels.length * 65) + "%",
-          pin: flowPin,
+          end: function () { return "+=" + Math.round(window.innerHeight * (flowPanels.length - 1) * 0.9); },
+          pin: true,
           scrub: 0.6,
           anticipatePin: 1,
           invalidateOnRefresh: true,

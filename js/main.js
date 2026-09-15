@@ -245,27 +245,117 @@
   }
 
   /* ---------------------------------------------------------
-     SCROLL REVEAL
+     SCROLL REVEAL — GSAP-powered when available (staggered
+     fade + rise, batched so elements entering together animate
+     as one cascade rather than each firing independently), with
+     a plain IntersectionObserver fallback if the GSAP CDN fails.
      --------------------------------------------------------- */
   var revealEls = document.querySelectorAll("[data-reveal]");
-  if ("IntersectionObserver" in window && revealEls.length) {
-    var io = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry, i) {
-          if (entry.isIntersecting) {
-            var el = entry.target;
-            window.setTimeout(function () {
-              el.classList.add("is-visible");
-            }, (i % 6) * 70);
-            io.unobserve(el);
-          }
-        });
-      },
-      { threshold: 0.2, rootMargin: "0px 0px -8% 0px" }
-    );
-    revealEls.forEach(function (el) { io.observe(el); });
-  } else {
-    revealEls.forEach(function (el) { el.classList.add("is-visible"); });
+  var hasGsapReveal = window.gsap && window.ScrollTrigger;
+
+  if (hasGsapReveal && revealEls.length) {
+    gsap.registerPlugin(ScrollTrigger);
+    if (reduceMotion) {
+      gsap.set(revealEls, { opacity: 1, y: 0 });
+    } else {
+      gsap.set(revealEls, { opacity: 0, y: 30 });
+      ScrollTrigger.batch(revealEls, {
+        start: "top 90%",
+        once: true,
+        onEnter: function (batch) {
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            duration: 0.9,
+            ease: "power3.out",
+            stagger: 0.09,
+            overwrite: true
+          });
+        }
+      });
+    }
+  } else if (revealEls.length) {
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry, i) {
+            if (entry.isIntersecting) {
+              var el = entry.target;
+              window.setTimeout(function () {
+                el.classList.add("is-visible");
+              }, (i % 6) * 70);
+              io.unobserve(el);
+            }
+          });
+        },
+        { threshold: 0.2, rootMargin: "0px 0px -8% 0px" }
+      );
+      revealEls.forEach(function (el) { io.observe(el); });
+    } else {
+      revealEls.forEach(function (el) { el.classList.add("is-visible"); });
+    }
+  }
+
+  /* ---------------------------------------------------------
+     MAGNETIC BUTTONS — primary/secondary CTAs pull gently
+     toward the cursor within their bounds, snapping back on
+     leave. GSAP quickTo gives it a springy, damped feel.
+     --------------------------------------------------------- */
+  if (window.gsap && !isCoarsePointer && !reduceMotion) {
+    document.querySelectorAll(".btn-primary, .btn-secondary, .slider-btn").forEach(function (btn) {
+      var moveX = gsap.quickTo(btn, "x", { duration: 0.5, ease: "power3" });
+      var moveY = gsap.quickTo(btn, "y", { duration: 0.5, ease: "power3" });
+      btn.addEventListener("mousemove", function (e) {
+        var r = btn.getBoundingClientRect();
+        moveX((e.clientX - r.left - r.width / 2) * 0.3);
+        moveY((e.clientY - r.top - r.height / 2) * 0.3);
+      });
+      btn.addEventListener("mouseleave", function () {
+        moveX(0);
+        moveY(0);
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------
+     PROOF COUNTERS — count up from 0 once scrolled into view.
+     --------------------------------------------------------- */
+  var proofNums = document.querySelectorAll(".proof-num");
+  if (proofNums.length) {
+    proofNums.forEach(function (el) {
+      var raw = el.textContent.trim();
+      var suffix = raw.replace(/^[0-9.]+/, "");
+      var target = parseFloat(raw);
+      if (isNaN(target)) return;
+
+      var run = function () {
+        if (window.gsap && !reduceMotion) {
+          var obj = { val: 0 };
+          gsap.to(obj, {
+            val: target,
+            duration: 1.4,
+            ease: "power2.out",
+            onUpdate: function () {
+              var decimals = (String(target).split(".")[1] || "").length;
+              el.textContent = obj.val.toFixed(decimals) + suffix;
+            }
+          });
+        } else {
+          el.textContent = raw;
+        }
+      };
+
+      if ("IntersectionObserver" in window) {
+        var counterIO = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) { run(); counterIO.unobserve(el); }
+          });
+        }, { threshold: 0.6 });
+        counterIO.observe(el);
+      } else {
+        run();
+      }
+    });
   }
 
   /* ---------------------------------------------------------

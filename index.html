@@ -206,8 +206,15 @@
       </p>
     </div>
 
-    <div class="arcade-frame">
-      <div class="arcade-frame-inner work-slider" data-slider>
+    <div class="terminal-frame">
+      <div class="terminal-bar">
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-title">selected-work.reel</span>
+        <span class="terminal-status"><span class="terminal-status-dot"></span>auto-scroll</span>
+      </div>
+      <div class="terminal-frame-inner work-slider" data-slider>
         <div class="work-track" data-slider-track role="list">
           <div class="work-track-set" data-track-set>
 
@@ -327,9 +334,7 @@
 
           </div>
         </div>
-        <div class="arcade-hint" aria-hidden="true">
-          <span class="arcade-dot"></span> auto-scrolling — hover to pause
-        </div>
+        <div class="terminal-scanline" aria-hidden="true"></div>
       </div>
     </div>
   </section>
@@ -567,12 +572,13 @@
 
   <!-- SECTION 7 — DIGITAL ME -->
   <section class="profile profile--fancy" id="profile" aria-label="Digital Me">
-    <div class="profile-glow" aria-hidden="true"></div>
+    <div class="profile-particles" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
     <div class="profile-inner">
 
       <div class="profile-avatar" data-tilt aria-hidden="true">
-        <span class="profile-avatar-ring profile-avatar-ring--a"></span>
-        <span class="profile-avatar-ring profile-avatar-ring--b"></span>
+        <span class="profile-orbit"><span class="profile-orbit-dot"></span></span>
         <div class="profile-avatar-inner">
           <span>W</span>
         </div>
@@ -580,7 +586,7 @@
 
       <p class="profile-kicker" data-reveal>// who's behind this</p>
       <h2 class="section-title">
-        <span class="split-heading" data-split>Digital Me.</span>
+        <span class="wipe-heading" data-wipe>Digital Me.</span>
       </h2>
       <p class="profile-copy" data-reveal>
         I'm Malik Waqas, based in Attock, working out of Lahore. BSCS from

@@ -143,38 +143,25 @@
   }
 
   /* ---------------------------------------------------------
-     SPLIT-CHARACTER REVEAL — for [data-split] elements (the
-     "Digital Me." heading). Wraps each character in its own
-     span so a staggered fade/rise/blur-in can run once the
+     CURTAIN-WIPE REVEAL — for [data-wipe] elements (the
+     "Digital Me." heading). A clip-path curtain opens left to
+     right, with a thin caret line leading the edge, once the
      element scrolls into view.
      --------------------------------------------------------- */
-  var splitEls = Array.prototype.slice.call(document.querySelectorAll("[data-split]"));
-  if (splitEls.length) {
-    splitEls.forEach(function (el) {
-      var text = el.textContent;
-      el.textContent = "";
-      el.setAttribute("aria-label", text);
-      Array.prototype.forEach.call(text, function (ch, i) {
-        var span = document.createElement("span");
-        span.className = "split-char";
-        span.style.setProperty("--i", i);
-        span.textContent = ch === " " ? "\u00A0" : ch;
-        span.setAttribute("aria-hidden", "true");
-        el.appendChild(span);
-      });
-    });
+  var wipeEls = Array.prototype.slice.call(document.querySelectorAll("[data-wipe]"));
+  if (wipeEls.length) {
     if (reduceMotion || !("IntersectionObserver" in window)) {
-      splitEls.forEach(function (el) { el.classList.add("is-in"); });
+      wipeEls.forEach(function (el) { el.classList.add("is-in"); });
     } else {
-      var splitIO = new IntersectionObserver(function (entries) {
+      var wipeIO = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-in");
-            splitIO.unobserve(entry.target);
+            wipeIO.unobserve(entry.target);
           }
         });
       }, { threshold: 0.4, rootMargin: "0px 0px -10% 0px" });
-      splitEls.forEach(function (el) { splitIO.observe(el); });
+      wipeEls.forEach(function (el) { wipeIO.observe(el); });
     }
   }
 

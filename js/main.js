@@ -297,6 +297,43 @@
   }
 
   /* ---------------------------------------------------------
+     HORIZONTAL RECAP — pins the section and translates the
+     track sideways as the page scrolls vertically, so the
+     recap panels play out like a mini scrollytelling strip.
+     Only runs above 900px: below that it's a normal swipeable
+     row (see the matching CSS media query), since pin-scrub
+     patterns tend to feel janky on small touch screens.
+     --------------------------------------------------------- */
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
+    var highlightsSection = document.querySelector("[data-highlights]");
+    var highlightsTrack = document.querySelector("[data-highlights-track]");
+
+    if (highlightsSection && highlightsTrack) {
+      var mm = gsap.matchMedia();
+      mm.add("(min-width: 900px)", function () {
+        var getScrollDistance = function () {
+          return Math.max(0, highlightsTrack.scrollWidth - highlightsSection.clientWidth);
+        };
+        var tween = gsap.to(highlightsTrack, {
+          x: function () { return -getScrollDistance(); },
+          ease: "none",
+          scrollTrigger: {
+            trigger: highlightsSection,
+            start: "top top",
+            end: function () { return "+=" + getScrollDistance(); },
+            scrub: 0.6,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true
+          }
+        });
+        return function () { tween.scrollTrigger && tween.scrollTrigger.kill(); tween.kill(); };
+      });
+    }
+  }
+
+  /* ---------------------------------------------------------
      MAGNETIC BUTTONS — primary/secondary CTAs pull gently
      toward the cursor within their bounds, snapping back on
      leave. GSAP quickTo gives it a springy, damped feel.

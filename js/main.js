@@ -143,29 +143,6 @@
   }
 
   /* ---------------------------------------------------------
-     CURTAIN-WIPE REVEAL — for [data-wipe] elements (the
-     "Digital Me." heading). A clip-path curtain opens left to
-     right, with a thin caret line leading the edge, once the
-     element scrolls into view.
-     --------------------------------------------------------- */
-  var wipeEls = Array.prototype.slice.call(document.querySelectorAll("[data-wipe]"));
-  if (wipeEls.length) {
-    if (reduceMotion || !("IntersectionObserver" in window)) {
-      wipeEls.forEach(function (el) { el.classList.add("is-in"); });
-    } else {
-      var wipeIO = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-in");
-            wipeIO.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.4, rootMargin: "0px 0px -10% 0px" });
-      wipeEls.forEach(function (el) { wipeIO.observe(el); });
-    }
-  }
-
-  /* ---------------------------------------------------------
      DIGITAL ME AVATAR — subtle cursor-reactive tilt
      --------------------------------------------------------- */
   var tiltEl = document.querySelector("[data-tilt]");
@@ -268,34 +245,136 @@
   }
 
   /* ---------------------------------------------------------
+     PRELOADER + HERO REVEAL TIMING
+     Locks scroll, plays a short letter-reveal + progress bar,
+     then wipes away and only THEN fires the hero's word-split
+     reveal — so the big headline lands the instant the curtain
+     clears instead of animating underneath it.
+     --------------------------------------------------------- */
+  var preloader = document.querySelector("[data-preloader]");
+  var preloaderFill = document.querySelector("[data-preloader-fill]");
+  var preloaderLetters = document.querySelectorAll(".preloader-letter");
+  var heroSplitWords = [];
+
+  function playHeroSplit() {
+    if (window.gsap && heroSplitWords.length && !reduceMotion) {
+      gsap.to(heroSplitWords, {
+        yPercent: 0, opacity: 1, duration: 0.9, ease: "power4.out", stagger: 0.035
+      });
+    } else if (heroSplitWords.length) {
+      gsap.set ? gsap.set(heroSplitWords, { yPercent: 0, opacity: 1 }) : null;
+    }
+  }
+
+  function finishPreload() {
+    document.documentElement.classList.remove("is-preloading");
+    if (preloader) preloader.classList.add("is-done");
+    playHeroSplit();
+  }
+
+  if (preloader && window.gsap && !reduceMotion) {
+    document.documentElement.classList.add("is-preloading");
+    gsap.set(preloaderLetters, { yPercent: 110 });
+    gsap.timeline({ onComplete: finishPreload })
+      .to(preloaderLetters, { yPercent: 0, duration: 0.55, ease: "power4.out", stagger: 0.06 })
+      .to(preloaderFill, { width: "100%", duration: 0.8, ease: "power2.inOut" }, "-=0.15")
+      .to(preloader, { yPercent: -100, duration: 0.65, ease: "power4.inOut" }, "+=0.1");
+  } else if (preloader) {
+    preloader.style.display = "none";
+  }
+
+  /* ---------------------------------------------------------
+     SPLIT TEXT — wraps each word of a [data-split] element in
+     its own span so it can animate independently. Nested inline
+     elements (like the accent-colored word) are kept intact as
+     a single animated unit rather than split further, so their
+     styling survives. Only runs with GSAP available; without it,
+     headings are left as plain text and handled by the ordinary
+     fade-reveal fallback below.
+     --------------------------------------------------------- */
+  function splitIntoWords(el) {
+    var words = [];
+    var frag = document.createDocumentFragment();
+    Array.prototype.slice.call(el.childNodes).forEach(function (node) {
+      if (node.nodeType === 3) {
+        node.textContent.split(/(\s+)/).forEach(function (part) {
+          if (part.trim() === "") {
+            frag.appendChild(document.createTextNode(part));
+          } else {
+            var span = document.createElement("span");
+            span.className = "split-word";
+            span.textContent = part;
+            frag.appendChild(span);
+            words.push(span);
+          }
+        });
+      } else if (node.nodeType === 1) {
+        var wrap = document.createElement("span");
+        wrap.className = "split-word";
+        wrap.appendChild(node.cloneNode(true));
+        frag.appendChild(wrap);
+        words.push(wrap);
+      }
+    });
+    el.innerHTML = "";
+    el.appendChild(frag);
+    return words;
+  }
+
+  /* ---------------------------------------------------------
      SCROLL REVEAL — GSAP-powered when available (staggered
      fade + rise, batched so elements entering together animate
      as one cascade rather than each firing independently), with
      a plain IntersectionObserver fallback if the GSAP CDN fails.
+     [data-split] elements are excluded from this plain batch
+     when GSAP is available — they get the word-split treatment
+     instead, set up right below.
      --------------------------------------------------------- */
   var revealEls = document.querySelectorAll("[data-reveal]");
+  var splitEls = document.querySelectorAll("[data-split]");
   var hasGsapReveal = window.gsap && window.ScrollTrigger;
 
   if (hasGsapReveal && revealEls.length) {
     gsap.registerPlugin(ScrollTrigger);
+    var batchEls = Array.prototype.slice.call(revealEls).filter(function (el) {
+      return !el.hasAttribute("data-split");
+    });
+
     if (reduceMotion) {
       gsap.set(revealEls, { opacity: 1, y: 0 });
     } else {
-      gsap.set(revealEls, { opacity: 0, y: 30 });
-      ScrollTrigger.batch(revealEls, {
-        start: "top 90%",
-        once: true,
-        onEnter: function (batch) {
-          gsap.to(batch, {
-            opacity: 1,
-            y: 0,
-            duration: 0.9,
-            ease: "power3.out",
-            stagger: 0.09,
-            overwrite: true
+      if (batchEls.length) {
+        gsap.set(batchEls, { opacity: 0, y: 30 });
+        ScrollTrigger.batch(batchEls, {
+          start: "top 90%",
+          once: true,
+          onEnter: function (batch) {
+            gsap.to(batch, {
+              opacity: 1, y: 0, duration: 0.9, ease: "power3.out", stagger: 0.09, overwrite: true
+            });
+          }
+        });
+      }
+
+      splitEls.forEach(function (el) {
+        var words = splitIntoWords(el);
+        gsap.set(words, { yPercent: 110, opacity: 0 });
+        if (el.dataset.split === "hero") {
+          heroSplitWords = heroSplitWords.concat(words);
+        } else {
+          ScrollTrigger.create({
+            trigger: el,
+            start: "top 88%",
+            once: true,
+            onEnter: function () {
+              gsap.to(words, { yPercent: 0, opacity: 1, duration: 0.85, ease: "power3.out", stagger: 0.035 });
+            }
           });
         }
       });
+
+      // no preloader running (or reduced motion) — reveal the hero words now
+      if (!preloader || reduceMotion) playHeroSplit();
     }
   } else if (revealEls.length) {
     if ("IntersectionObserver" in window) {
@@ -320,23 +399,213 @@
   }
 
   /* ---------------------------------------------------------
+     STEP PANELS — "Raw data isn't the product" section.
+     Above 900px: pins the section and scrubs the track
+     horizontally as the page scrolls vertically, with each
+     panel individually scaling/fading in as it crosses the
+     viewport (the standard GSAP "horizontal panels inside a
+     pinned scrub" pattern, using containerAnimation so each
+     panel's own ScrollTrigger reads progress from the master
+     horizontal tween instead of the page's vertical scroll).
+     Below 900px: a plain swipeable row (see matching CSS),
+     since pin-scrub tends to feel broken on small touch screens.
+     --------------------------------------------------------- */
+  var stepsPin = document.querySelector("[data-steps-pin]");
+  var stepsTrack = document.querySelector("[data-steps-track]");
+  if (stepsPin && stepsTrack) {
+    var stepPanels = Array.prototype.slice.call(stepsTrack.querySelectorAll("[data-step-panel]"));
+
+    if (window.gsap && window.ScrollTrigger && !reduceMotion) {
+      gsap.registerPlugin(ScrollTrigger);
+      var stepsMM = gsap.matchMedia();
+
+      stepsMM.add("(min-width: 900px)", function () {
+        var getScrollDistance = function () {
+          return Math.max(0, stepsTrack.scrollWidth - stepsPin.clientWidth);
+        };
+        var master = gsap.to(stepsTrack, {
+          x: function () { return -getScrollDistance(); },
+          ease: "none",
+          scrollTrigger: {
+            trigger: stepsPin,
+            start: "top top",
+            end: function () { return "+=" + getScrollDistance(); },
+            scrub: 0.6,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true
+          }
+        });
+
+        var panelTriggers = stepPanels.map(function (panel) {
+          gsap.set(panel, { scale: 0.9, opacity: 0.4 });
+          gsap.set(panel.querySelector(".step-bar"), { scaleX: 0 });
+          gsap.to(panel, {
+            scale: 1, opacity: 1, ease: "none",
+            scrollTrigger: {
+              trigger: panel,
+              containerAnimation: master,
+              start: "left 78%",
+              end: "left 38%",
+              scrub: true
+            }
+          });
+          return gsap.to(panel.querySelector(".step-bar"), {
+            scaleX: 1, ease: "none",
+            scrollTrigger: {
+              trigger: panel,
+              containerAnimation: master,
+              start: "left 70%",
+              end: "left 42%",
+              scrub: true
+            }
+          });
+        });
+
+        return function () {
+          master.scrollTrigger && master.scrollTrigger.kill();
+          master.kill();
+          panelTriggers.forEach(function (t) { t.scrollTrigger && t.scrollTrigger.kill(); t.kill(); });
+        };
+      });
+
+      // idea-loop decoration plays only while the section is on screen
+      var ideaSection = document.getElementById("idea");
+      if (ideaSection && "IntersectionObserver" in window) {
+        var ideaIO = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            ideaSection.classList.toggle("is-in-view", entry.isIntersecting);
+          });
+        }, { threshold: 0.25 });
+        ideaIO.observe(ideaSection);
+      }
+    } else {
+      // no GSAP / reduced motion: everything just shown, plain swipeable row
+      gsap && gsap.set ? gsap.set(stepPanels, { opacity: 1, scale: 1 }) : null;
+      document.getElementById("idea") && document.getElementById("idea").classList.add("is-in-view");
+    }
+
+    attachWheelToHorizontal(stepsTrack);
+  }
+
+  function attachWheelToHorizontal(el) {
+    el.addEventListener("wheel", function (e) {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      var atStart = el.scrollLeft <= 0;
+      var atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
+      el.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+  }
+
+
+
+  /* ---------------------------------------------------------
      MAGNETIC BUTTONS — primary/secondary CTAs pull gently
      toward the cursor within their bounds, snapping back on
-     leave. GSAP quickTo gives it a springy, damped feel.
+     leave, with a snappy press-down on click. GSAP quickTo
+     gives the pull a springy, damped feel.
      --------------------------------------------------------- */
   if (window.gsap && !isCoarsePointer && !reduceMotion) {
     document.querySelectorAll(".btn-primary, .btn-secondary, .slider-btn").forEach(function (btn) {
       var moveX = gsap.quickTo(btn, "x", { duration: 0.5, ease: "power3" });
       var moveY = gsap.quickTo(btn, "y", { duration: 0.5, ease: "power3" });
+      var moveS = gsap.quickTo(btn, "scale", { duration: 0.25, ease: "power3" });
       btn.addEventListener("mousemove", function (e) {
         var r = btn.getBoundingClientRect();
         moveX((e.clientX - r.left - r.width / 2) * 0.3);
         moveY((e.clientY - r.top - r.height / 2) * 0.3);
       });
-      btn.addEventListener("mouseleave", function () {
-        moveX(0);
-        moveY(0);
+      btn.addEventListener("mouseleave", function () { moveX(0); moveY(0); moveS(1); });
+      btn.addEventListener("mousedown", function () { moveS(0.92); });
+      btn.addEventListener("mouseup", function () { moveS(1); });
+    });
+  }
+
+  /* ---------------------------------------------------------
+     HERO MOTION GRAPHICS — two soft blurred blobs drift in a
+     slow infinite loop, and a spotlight glow follows the cursor
+     around the hero for depth. Desktop only (see CSS media
+     query hiding .hero-motion on small screens).
+     --------------------------------------------------------- */
+  var heroMotion = document.querySelector("[data-hero-motion]");
+  if (heroMotion && window.gsap && !reduceMotion && !isCoarsePointer) {
+    gsap.to(".hero-blob--a", {
+      x: 40, y: 30, duration: 9, ease: "sine.inOut", yoyo: true, repeat: -1
+    });
+    gsap.to(".hero-blob--b", {
+      x: -50, y: 24, duration: 11, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.6
+    });
+
+    var spotlight = document.querySelector("[data-hero-spotlight]");
+    if (spotlight) {
+      var heroSection = document.getElementById("hero");
+      var moveSpotX = gsap.quickTo(spotlight, "x", { duration: 0.6, ease: "power2" });
+      var moveSpotY = gsap.quickTo(spotlight, "y", { duration: 0.6, ease: "power2" });
+      heroSection.addEventListener("mousemove", function (e) {
+        var r = heroSection.getBoundingClientRect();
+        moveSpotX(e.clientX - r.left);
+        moveSpotY(e.clientY - r.top);
+        spotlight.style.opacity = 1;
       });
+      heroSection.addEventListener("mouseleave", function () { spotlight.style.opacity = 0; });
+    }
+  }
+
+  /* ---------------------------------------------------------
+     CARD TILT — a light 3D tilt following the cursor, applied
+     to work/lab thumbnails and the step panels. Same technique
+     as the Digital Me avatar, generalized to a reusable helper.
+     --------------------------------------------------------- */
+  function enableTilt(el, strength) {
+    strength = strength || 10;
+    el.addEventListener("mousemove", function (e) {
+      var r = el.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      el.style.transform = "perspective(700px) rotateY(" + (px * strength) + "deg) rotateX(" + (py * -strength) + "deg)";
+    });
+    el.addEventListener("mouseleave", function () {
+      el.style.transform = "perspective(700px) rotateY(0deg) rotateX(0deg)";
+    });
+  }
+  if (!isCoarsePointer && !reduceMotion) {
+    document.querySelectorAll(".work-frame").forEach(function (el) { enableTilt(el, 6); });
+    document.querySelectorAll(".step-panel").forEach(function (el) { enableTilt(el, 4); });
+  }
+
+  /* ---------------------------------------------------------
+     STEP WATERMARK PARALLAX — the big outlined number inside
+     each pinned step panel drifts slightly opposite the panel's
+     own motion as it crosses the screen, for a bit of depth.
+     --------------------------------------------------------- */
+  if (window.gsap && window.ScrollTrigger && !reduceMotion) {
+    var watermarkMM = gsap.matchMedia();
+    watermarkMM.add("(min-width: 900px)", function () {
+      var watermarkTweens = [];
+      document.querySelectorAll(".step-panel").forEach(function (panel) {
+        var mark = panel.querySelector(".step-watermark");
+        if (!mark) return;
+        // reuse the same containerAnimation as the panel itself by
+        // finding the pin ScrollTrigger already driving stepsTrack
+        var pinTrigger = ScrollTrigger.getAll().find(function (st) {
+          return st.vars && st.trigger === document.querySelector("[data-steps-pin]");
+        });
+        if (!pinTrigger) return;
+        var tween = gsap.fromTo(mark, { xPercent: 6 }, {
+          xPercent: -6, ease: "none",
+          scrollTrigger: {
+            trigger: panel,
+            containerAnimation: pinTrigger.animation,
+            start: "left right",
+            end: "right left",
+            scrub: true
+          }
+        });
+        watermarkTweens.push(tween);
+      });
+      return function () { watermarkTweens.forEach(function (t) { t.scrollTrigger && t.scrollTrigger.kill(); t.kill(); }); };
     });
   }
 
@@ -382,73 +651,6 @@
   }
 
   /* ---------------------------------------------------------
-     THE PIPELINE — "Raw data isn't the product" section.
-     Pins the section and scrubs through five stages as one
-     tied-to-scroll sequence: each stage wipes in over the
-     last (clip-path), a giant background numeral and a rail
-     underneath both track progress continuously. Below 900px,
-     or with reduced motion, it drops the pin and reads as a
-     normal stacked list instead (see the matching CSS).
-     --------------------------------------------------------- */
-  var flowSection = document.querySelector(".flow");
-  var flowPin = document.querySelector("[data-flow-pin]");
-  var flowPanels = Array.prototype.slice.call(document.querySelectorAll("[data-flow-panel]"));
-  var flowGhost = document.querySelector("[data-flow-ghost]");
-  var flowRailFill = document.querySelector("[data-flow-rail-fill]");
-
-  if (flowSection && flowPin && flowPanels.length) {
-    var setFlowStage = function (idx) {
-      flowPanels.forEach(function (panel, i) { panel.classList.toggle("is-active", i === idx); });
-      if (flowGhost) flowGhost.textContent = String(idx + 1).padStart(2, "0");
-    };
-
-    if (window.gsap && window.ScrollTrigger && !reduceMotion) {
-      gsap.registerPlugin(ScrollTrigger);
-      var flowMM = gsap.matchMedia();
-      flowMM.add("(min-width: 900px)", function () {
-        // trigger === pin target (not the wider section, which also
-        // includes the heading above it) so the pin engages exactly
-        // when the stage itself reaches the top of the viewport
-        var trigger = ScrollTrigger.create({
-          trigger: flowPin,
-          start: "top top",
-          end: function () { return "+=" + Math.round(window.innerHeight * (flowPanels.length - 1) * 0.9); },
-          pin: true,
-          scrub: 0.6,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          onUpdate: function (self) {
-            var p = self.progress;
-            var idx = Math.min(flowPanels.length - 1, Math.floor(p * flowPanels.length));
-            setFlowStage(idx);
-            if (flowGhost) {
-              var drift = (p * 36 - 18).toFixed(1);
-              flowGhost.style.transform = "translate(calc(-50% + " + drift + "px), -50%)";
-            }
-            if (flowRailFill) flowRailFill.style.width = (p * 100) + "%";
-          }
-        });
-        setFlowStage(0);
-        return function () { trigger.kill(); };
-      });
-    } else {
-      // reduced motion / no GSAP: static stacked read, everything visible
-      flowSection.classList.add("is-static");
-    }
-  }
-
-  function attachWheelToHorizontal(el) {
-    el.addEventListener("wheel", function (e) {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      var atStart = el.scrollLeft <= 0;
-      var atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
-      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
-      el.scrollLeft += e.deltaY;
-      e.preventDefault();
-    }, { passive: false });
-  }
-
-  /* ---------------------------------------------------------
      CAPABILITIES — tap to open on touch devices
      --------------------------------------------------------- */
   var stackRows = document.querySelectorAll("[data-stack-row]");
@@ -463,54 +665,62 @@
   }
 
   /* ---------------------------------------------------------
-     WORK SLIDER — infinite auto-scrolling marquee. The original
-     item set is cloned once; the clone is marked inert/aria-hidden
-     so it never duplicates lightbox triggers or tab stops. The
-     track then animates via CSS (translateX 0 -> -50%), which is
-     an exact one-set repeat because the CSS gives each set a
-     trailing margin instead of a flex gap between sets. JS just
-     measures the real set's width to pick a natural, constant
-     scroll speed, and pauses on hover/focus/touch and whenever
-     the lightbox is open.
+     WORK SLIDER — single-line, arrow + swipe navigation
      --------------------------------------------------------- */
   var slider = document.querySelector("[data-slider]");
   var sliderTrack = document.querySelector("[data-slider-track]");
-  var trackSet = document.querySelector("[data-track-set]");
-  if (slider && sliderTrack && trackSet && !reduceMotion) {
-    var MARQUEE_PX_PER_SEC = 46;
+  if (slider && sliderTrack) {
+    var slides = Array.prototype.slice.call(sliderTrack.querySelectorAll(".work-item"));
+    var prevBtn = document.querySelector("[data-slider-prev]");
+    var nextBtn = document.querySelector("[data-slider-next]");
+    var currentEl = document.querySelector("[data-slider-current]");
+    var totalEl = document.querySelector("[data-slider-total]");
+    var progressEl = document.querySelector("[data-slider-progress]");
 
-    var makeInert = function (el) {
-      el.setAttribute("aria-hidden", "true");
-      var focusable = el.querySelectorAll("[data-slide-trigger], a, button, [tabindex]");
-      Array.prototype.forEach.call(focusable, function (f) {
-        f.removeAttribute("data-slide-trigger");
-        f.setAttribute("tabindex", "-1");
-      });
+    if (totalEl) totalEl.textContent = String(slides.length).padStart(2, "0");
+
+    var slideStep = function () {
+      var first = slides[0];
+      var gap = parseFloat(getComputedStyle(sliderTrack).columnGap || getComputedStyle(sliderTrack).gap || "24");
+      return first.getBoundingClientRect().width + gap;
     };
 
-    var clone = trackSet.cloneNode(true);
-    clone.removeAttribute("data-track-set");
-    makeInert(clone);
-    sliderTrack.appendChild(clone);
-
-    var applyDuration = function () {
-      var width = trackSet.getBoundingClientRect().width;
-      var duration = Math.max(12, width / MARQUEE_PX_PER_SEC);
-      sliderTrack.style.setProperty("--marquee-duration", duration + "s");
+    var currentIndex = function () {
+      var step = slideStep();
+      return Math.round(sliderTrack.scrollLeft / step);
     };
-    applyDuration();
-    window.addEventListener("resize", applyDuration);
 
-    slider.classList.add("is-marquee");
+    var updateSliderUI = function () {
+      var idx = Math.max(0, Math.min(slides.length - 1, currentIndex()));
+      if (currentEl) currentEl.textContent = String(idx + 1).padStart(2, "0");
+      if (progressEl) {
+        progressEl.style.width = (100 / slides.length) + "%";
+        progressEl.style.transform = "translateX(" + idx * 100 + "%)";
+      }
+      var atStart = sliderTrack.scrollLeft <= 4;
+      var atEnd = sliderTrack.scrollLeft + sliderTrack.clientWidth >= sliderTrack.scrollWidth - 4;
+      if (prevBtn) prevBtn.disabled = atStart;
+      if (nextBtn) nextBtn.disabled = atEnd;
+    };
 
-    // pause on hover/focus is handled in CSS (:hover / :focus-within);
-    // also pause explicitly on touch, since touch devices have no hover
-    slider.addEventListener("touchstart", function () { slider.classList.add("is-paused"); }, { passive: true });
-    slider.addEventListener("touchend", function () {
-      window.setTimeout(function () { slider.classList.remove("is-paused"); }, 1200);
+    var goTo = function (idx) {
+      idx = Math.max(0, Math.min(slides.length - 1, idx));
+      sliderTrack.scrollTo({ left: idx * slideStep(), behavior: reduceMotion ? "auto" : "smooth" });
+    };
+
+    if (prevBtn) prevBtn.addEventListener("click", function () { goTo(currentIndex() - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function () { goTo(currentIndex() + 1); });
+
+    var sliderTicking = false;
+    sliderTrack.addEventListener("scroll", function () {
+      if (!sliderTicking) {
+        requestAnimationFrame(function () { updateSliderUI(); sliderTicking = false; });
+        sliderTicking = true;
+      }
     }, { passive: true });
-  } else if (slider) {
-    // reduced motion: keep it a plain swipeable/scrollable strip
+
+    window.addEventListener("resize", updateSliderUI);
+    updateSliderUI();
     attachWheelToHorizontal(sliderTrack);
   }
 
@@ -554,7 +764,6 @@
       lightbox.setAttribute("data-open", "true");
       lightbox.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
-      if (slider) slider.classList.add("is-paused");
       if (lbClose) lbClose.focus();
     };
 
@@ -562,7 +771,6 @@
       lightbox.setAttribute("data-open", "false");
       lightbox.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
-      if (slider) slider.classList.remove("is-paused");
       if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
     };
 

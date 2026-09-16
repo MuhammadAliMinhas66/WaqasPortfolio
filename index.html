@@ -12,14 +12,6 @@
 </head>
 <body>
 
-<div class="preloader" data-preloader aria-hidden="true">
-  <div class="preloader-mark">
-    <span class="preloader-letter">W</span>
-    <span class="preloader-letter">S</span>
-  </div>
-  <div class="preloader-bar"><span data-preloader-fill></span></div>
-</div>
-
 <div class="cursor-dot" aria-hidden="true"></div>
 <div class="cursor-label" aria-hidden="true"><span></span></div>
 
@@ -52,7 +44,6 @@
       <li><a href="#lab">Lab</a></li>
       <li><a href="#capabilities">Capabilities</a></li>
       <li><a href="#experience">Experience</a></li>
-      <li><a href="#datascience">Data Science</a></li>
       <li><a href="#profile">Digital Me</a></li>
       <li><a href="#assistant">Assistant</a></li>
       <li><a href="#proof">Proof</a></li>
@@ -69,11 +60,6 @@
 
   <!-- HERO -->
   <section class="hero" id="hero" aria-label="Introduction">
-    <div class="hero-motion" aria-hidden="true" data-hero-motion>
-      <span class="hero-blob hero-blob--a"></span>
-      <span class="hero-blob hero-blob--b"></span>
-      <span class="hero-spotlight" data-hero-spotlight></span>
-    </div>
     <div class="hero-decor" aria-hidden="true">
       <span class="corner-bracket corner-bracket--tl"></span>
       <span class="corner-bracket corner-bracket--tr"></span>
@@ -87,8 +73,8 @@
         <span class="status-pill" data-reveal><span class="status-dot"></span>Available for freelance work</span>
       </p>
       <h1 class="hero-headline">
-        <span class="line" data-reveal data-split="hero">Data should answer</span>
-        <span class="line" data-reveal data-split="hero"><span class="accent">questions</span><span class="accent-dot">.</span></span>
+        <span class="line" data-reveal>Data should answer</span>
+        <span class="line" data-reveal><span class="accent">questions</span><span class="accent-dot">.</span></span>
       </h1>
 
       <div class="hero-meta">
@@ -115,59 +101,50 @@
     </div>
   </section>
 
-  <!-- SECTION 1 — THE IDEA -->
-  <section class="idea" id="idea" aria-label="Working philosophy">
-    <div class="idea-intro">
-      <div class="steps-loop" aria-hidden="true">
-        <span class="loop-circle"></span>
-        <span class="loop-orbit"><span class="loop-orbit-dot"></span></span>
+  <!-- TICKER — continuous scrolling tool/skill band -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <div class="ticker-set">
+        <span>Power BI</span><span>SQL</span><span>Python</span><span>DAX</span><span>Power Query</span><span>Excel</span><span>KPI Design</span><span>Dashboards</span>
       </div>
-      <h2 class="section-title">
-        <span data-reveal data-split>Raw data isn't the product.</span>
-        <span class="accent" data-reveal data-split>The decision is.</span>
-      </h2>
-      <p class="idea-copy" data-reveal>
-        Every report starts messy — half-typed fields, mismatched IDs, a
-        spreadsheet three people edited differently. Getting to a number a
-        manager can trust is the actual job.
-      </p>
+      <div class="ticker-set">
+        <span>Power BI</span><span>SQL</span><span>Python</span><span>DAX</span><span>Power Query</span><span>Excel</span><span>KPI Design</span><span>Dashboards</span>
+      </div>
     </div>
+  </div>
 
-    <div class="steps-pin" data-steps-pin aria-roledescription="carousel" aria-label="The four-step data pipeline">
-      <div class="steps-track" data-steps-track tabindex="0" aria-label="Ingestion, cleaning, transformation, modeling">
+  <!-- SECTION 1 — THE PIPELINE (signature pinned scroll sequence) -->
+  <section class="flow" id="idea" aria-label="How raw data becomes a decision">
+    <div class="flow-pin" data-flow-pin>
+      <div class="flow-stage">
+        <span class="flow-ghost" data-flow-ghost aria-hidden="true">01</span>
 
-        <article class="step-panel" data-step-panel>
-          <span class="step-bar" aria-hidden="true"></span>
-          <span class="step-watermark" aria-hidden="true">01</span>
-          <span class="step-num">01 / 04</span>
-          <h3 class="step-title">Ingestion</h3>
-          <p class="step-desc">Pulling raw records from source systems, exports and forms.</p>
-        </article>
+        <ul class="flow-panels" data-flow-panels role="list">
+          <li class="flow-panel is-active" data-flow-panel>
+            <h3 class="flow-panel-title">Ingestion</h3>
+            <p class="flow-panel-desc">Raw records pulled from source systems, exports and forms.</p>
+          </li>
+          <li class="flow-panel" data-flow-panel>
+            <h3 class="flow-panel-title">Cleaning</h3>
+            <p class="flow-panel-desc">Type mismatches, duplicates and inconsistent entries, fixed.</p>
+          </li>
+          <li class="flow-panel" data-flow-panel>
+            <h3 class="flow-panel-title">Transformation</h3>
+            <p class="flow-panel-desc">Tables reshaped to answer the actual question being asked.</p>
+          </li>
+          <li class="flow-panel" data-flow-panel>
+            <h3 class="flow-panel-title">Modeling</h3>
+            <p class="flow-panel-desc">Tables related correctly, so every measure calculates right.</p>
+          </li>
+          <li class="flow-panel" data-flow-panel>
+            <h3 class="flow-panel-title">Decision</h3>
+            <p class="flow-panel-desc">A number someone can act on — the point of the other four.</p>
+          </li>
+        </ul>
 
-        <article class="step-panel" data-step-panel>
-          <span class="step-bar" aria-hidden="true"></span>
-          <span class="step-watermark" aria-hidden="true">02</span>
-          <span class="step-num">02 / 04</span>
-          <h3 class="step-title">Cleaning</h3>
-          <p class="step-desc">Fixing type mismatches, duplicates and inconsistent entries.</p>
-        </article>
-
-        <article class="step-panel" data-step-panel>
-          <span class="step-bar" aria-hidden="true"></span>
-          <span class="step-watermark" aria-hidden="true">03</span>
-          <span class="step-num">03 / 04</span>
-          <h3 class="step-title">Transformation</h3>
-          <p class="step-desc">Reshaping tables so they answer the questions being asked of them.</p>
-        </article>
-
-        <article class="step-panel" data-step-panel>
-          <span class="step-bar" aria-hidden="true"></span>
-          <span class="step-watermark" aria-hidden="true">04</span>
-          <span class="step-num">04 / 04</span>
-          <h3 class="step-title">Modeling</h3>
-          <p class="step-desc">Relating tables correctly so measures calculate the right thing.</p>
-        </article>
-
+        <div class="flow-rail" aria-hidden="true">
+          <span class="flow-rail-fill" data-flow-rail-fill></span>
+        </div>
       </div>
     </div>
   </section>
@@ -175,8 +152,8 @@
   <!-- SECTION 2 — CAPABILITIES -->
   <section class="capabilities" id="capabilities" aria-label="Capabilities">
     <h2 class="section-title section-title--split">
-      <span data-reveal data-split>An analytics stack,</span>
-      <span class="accent" data-reveal data-split>not a skill list.</span>
+      <span data-reveal>An analytics stack,</span>
+      <span class="accent" data-reveal>not a skill list.</span>
     </h2>
 
     <div class="stack" data-stack>
@@ -232,8 +209,8 @@
   <section class="work" id="work" aria-label="Selected reporting work">
     <div class="work-intro">
       <h2 class="section-title">
-        <span data-reveal data-split>From tables</span>
-        <span class="accent" data-reveal data-split>to signals.</span>
+        <span data-reveal>From tables</span>
+        <span class="accent" data-reveal>to signals.</span>
       </h2>
       <p class="work-copy" data-reveal>
         Dashboard builds spanning logistics, retail, operations and public
@@ -241,8 +218,17 @@
       </p>
     </div>
 
-    <div class="work-slider" data-slider>
-      <div class="work-track" data-slider-track role="list">
+    <div class="terminal-frame">
+      <div class="terminal-bar">
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-title">selected-work.reel</span>
+        <span class="terminal-status"><span class="terminal-status-dot"></span>auto-scroll</span>
+      </div>
+      <div class="terminal-frame-inner work-slider" data-slider>
+        <div class="work-track" data-slider-track role="list">
+          <div class="work-track-set" data-track-set>
 
         <figure class="work-item" role="listitem">
           <button class="work-frame" type="button" data-slide-trigger data-cursor="VIEW"
@@ -358,19 +344,9 @@
           </figcaption>
         </figure>
 
-      </div>
-
-      <div class="work-slider-controls">
-        <button class="slider-btn" type="button" data-slider-prev aria-label="Previous project">
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3 5 8l5 5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="slider-count" aria-hidden="true">
-          <span data-slider-current>01</span> / <span data-slider-total>06</span>
+          </div>
         </div>
-        <button class="slider-btn" type="button" data-slider-next aria-label="Next project">
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="slider-track-bar" aria-hidden="true"><span data-slider-progress></span></div>
+        <div class="terminal-scanline" aria-hidden="true"></div>
       </div>
     </div>
   </section>
@@ -379,8 +355,8 @@
   <section class="lab" id="lab" aria-label="Lab and experiments">
     <div class="work-intro">
       <h2 class="section-title">
-        <span data-reveal data-split>Lab</span>
-        <span class="accent" data-reveal data-split>/ practice builds.</span>
+        <span data-reveal>Lab</span>
+        <span class="accent" data-reveal>/ practice builds.</span>
       </h2>
       <p class="work-copy" data-reveal>
         Smaller dashboards built to practice a tool or pattern — Excel
@@ -546,7 +522,6 @@
     </div>
   </section>
 
-
   <!-- SECTION 5 — HOW HE THINKS / THE ANALYTICAL LOOP -->
   <section class="loop" id="loop" aria-label="How he approaches a problem">
     <div class="loop-pin" data-loop-pin>
@@ -562,20 +537,14 @@
           <li data-loop-item="decision"><span class="loop-num">5</span>Decision</li>
         </ol>
       </div>
-
-      <p class="loop-copy">
-        A vague ask — "why did deliveries slow down in October" — only becomes useful
-        once it's broken into a question a table can answer, cleaned into a structure,
-        reduced to a signal, and handed back as a decision.
-      </p>
     </div>
   </section>
 
   <!-- SECTION 4 — EXPERIENCE -->
   <section class="experience" id="experience" aria-label="Experience">
     <h2 class="section-title">
-      <span data-reveal data-split>Where this has</span>
-      <span class="accent" data-reveal data-split>been applied.</span>
+      <span data-reveal>Where this has</span>
+      <span class="accent" data-reveal>been applied.</span>
     </h2>
 
     <ol class="timeline" data-timeline>
@@ -613,40 +582,23 @@
     </ol>
   </section>
 
-  <!-- SECTION 6 — DATA SCIENCE -->
-  <section class="datascience" id="datascience" aria-label="Data science">
-    <div class="ds-inner">
-      <h2 class="section-title section-title--small">
-        <span data-reveal data-split>Analytics first.</span>
-        <span class="accent" data-reveal data-split>Data science alongside it.</span>
-      </h2>
-      <p class="ds-copy" data-reveal>
-        Reporting is the core of the work — but some questions need a model,
-        not a measure. Working knowledge of supervised and unsupervised
-        learning, applied where a dashboard alone won't answer it.
-      </p>
-      <ul class="ds-list">
-        <li>Supervised Learning</li>
-        <li>Unsupervised Learning</li>
-        <li>Feature Engineering</li>
-        <li>Model Evaluation</li>
-        <li>Scikit-learn</li>
-      </ul>
-    </div>
-  </section>
-
   <!-- SECTION 7 — DIGITAL ME -->
-  <section class="profile" id="profile" aria-label="Digital Me">
+  <section class="profile profile--fancy" id="profile" aria-label="Digital Me">
+    <div class="profile-particles" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
     <div class="profile-inner">
 
       <div class="profile-avatar" data-tilt aria-hidden="true">
+        <span class="profile-orbit"><span class="profile-orbit-dot"></span></span>
         <div class="profile-avatar-inner">
           <span>W</span>
         </div>
       </div>
 
+      <p class="profile-kicker" data-reveal>// who's behind this</p>
       <h2 class="section-title">
-        <span data-reveal data-split>Digital Me.</span>
+        <span class="wipe-heading" data-wipe>Digital Me.</span>
       </h2>
       <p class="profile-copy" data-reveal>
         I'm Malik Waqas, based in Attock, working out of Lahore. BSCS from
@@ -655,10 +607,10 @@
         question rather than running for its own sake.
       </p>
       <dl class="profile-facts">
-        <div><dt>Based</dt><dd>Lahore, Pakistan</dd></div>
-        <div><dt>Focus</dt><dd>Operational &amp; Retail Analytics</dd></div>
-        <div><dt>Experience</dt><dd>1.5+ Years</dd></div>
-        <div><dt>Currently</dt><dd>Data Analyst @ Daewoo FastEx</dd></div>
+        <div data-reveal><dt>Based</dt><dd>Lahore, Pakistan</dd></div>
+        <div data-reveal><dt>Focus</dt><dd>Operational &amp; Retail Analytics</dd></div>
+        <div data-reveal><dt>Experience</dt><dd>1.5+ Years</dd></div>
+        <div data-reveal><dt>Currently</dt><dd>Data Analyst @ Daewoo FastEx</dd></div>
       </dl>
     </div>
   </section>
@@ -666,8 +618,8 @@
   <!-- SECTION — ASK MY ASSISTANT -->
   <section class="assistant" id="assistant" aria-label="Ask my digital assistant">
     <h2 class="section-title">
-      <span data-reveal data-split>Ask my</span>
-      <span class="accent" data-reveal data-split>digital assistant.</span>
+      <span data-reveal>Ask my</span>
+      <span class="accent" data-reveal>digital assistant.</span>
     </h2>
     <p class="work-copy" data-reveal>
       A small client-side Q&amp;A trained on this page's real content —
@@ -701,8 +653,8 @@
   <!-- SECTION — PROOF -->
   <section class="proof" id="proof" aria-label="Proof">
     <h2 class="section-title">
-      <span data-reveal data-split>Proof,</span>
-      <span class="accent" data-reveal data-split>not just claims.</span>
+      <span data-reveal>Proof,</span>
+      <span class="accent" data-reveal>not just claims.</span>
     </h2>
 
     <div class="proof-grid">
@@ -790,8 +742,6 @@
   <p class="footer-year">© 2026</p>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="js/main.js"></script>

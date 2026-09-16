@@ -153,15 +153,19 @@
     if (reduceMotion || !("IntersectionObserver" in window)) {
       wipeEls.forEach(function (el) { el.classList.add("is-in"); });
     } else {
+      // NOTE: observe the *parent*, not the element itself. A target
+      // clipped to zero width by clip-path reports an intersection
+      // ratio of 0 forever, so observing it directly would mean the
+      // curtain never opens.
       var wipeIO = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-in");
-            wipeIO.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) return;
+          var targets = entry.target.querySelectorAll("[data-wipe]");
+          Array.prototype.forEach.call(targets, function (t) { t.classList.add("is-in"); });
+          wipeIO.unobserve(entry.target);
         });
-      }, { threshold: 0.4, rootMargin: "0px 0px -10% 0px" });
-      wipeEls.forEach(function (el) { wipeIO.observe(el); });
+      }, { threshold: 0.25, rootMargin: "0px 0px -8% 0px" });
+      wipeEls.forEach(function (el) { wipeIO.observe(el.parentElement || el); });
     }
   }
 

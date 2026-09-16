@@ -7,35 +7,35 @@
    ========================================================= */
 
 :root{
-  --black:     #0a0a0a;
-  --black-soft:#141414;
-  --cream:     #f4f2e9;
-  --cream-dim: #d9d6c9;
+  --black:     #111827;
+  --black-soft:#1f2937;
+  --cream:     #eef2f7;
+  --cream-dim: #c7d0dc;
 
-  --lime:      #d6f501;
-  --pink:      #ff4fc0;
-  --blue:      #3f5cff;
-  --green:     #00c46a;
-  --purple:    #9d7bff;
-  --orange:    #ff7a2f;
+  --lime:      #3157d5;
+  --pink:      #dce5ff;
+  --blue:      #2448b8;
+  --green:     #287f72;
+  --purple:    #6b5ca5;
+  --orange:    #a85d3b;
 
-  --paper:     #faf9f4;
+  --paper:     #f7f9fc;
 
   --bg:        var(--paper);
   --bg-raised: #ffffff;
-  --bg-line:   rgba(20,19,13,0.13);
-  --ink:       #14130d;
-  --ink-dim:   rgba(20,19,13,0.64);
-  --ink-faint: rgba(20,19,13,0.42);
-  --accent:    #5a6a00;
-  --accent-dim:rgba(90,106,0,0.45);
-  --accent-ink:#0a0a0a;
+  --bg-line:   rgba(23,32,51,0.13);
+  --ink:       #172033;
+  --ink-dim:   rgba(23,32,51,0.64);
+  --ink-faint: rgba(23,32,51,0.42);
+  --accent:    #3157d5;
+  --accent-dim:rgba(49,87,213,0.45);
+  --accent-ink:#ffffff;
 
   /* the lightbox stays a dark viewer regardless of page theme */
-  --scrim-line:     rgba(244,242,233,0.18);
+  --scrim-line:     rgba(238,242,247,0.18);
   --scrim-ink:      #f4f2e9;
-  --scrim-ink-dim:  rgba(244,242,233,0.62);
-  --scrim-ink-faint:rgba(244,242,233,0.40);
+  --scrim-ink-dim:  rgba(238,242,247,0.62);
+  --scrim-ink-faint:rgba(238,242,247,0.40);
 
   --font-display: "Archivo", "Arial Black", sans-serif;
   --font-accent:  "Instrument Serif", serif;
@@ -495,7 +495,7 @@ p{ margin:0; }
   font-family: var(--font-display);
   font-weight: 800; font-style: italic; font-stretch: 112%;
   font-size: clamp(9rem, 32vw, 26rem);
-  line-height: 0.8; color: rgba(20,19,13,0.05);
+  line-height: 0.8; color: rgba(23,32,51,0.05);
   pointer-events: none; z-index: 0;
 }
 .flow-panels{ position: relative; z-index: 1; min-height: 44vh; }
@@ -800,7 +800,7 @@ p{ margin:0; }
 .loop-noise{
   position:absolute; inset:-10% -4%;
   background-image: repeating-linear-gradient(
-    115deg, rgba(20,19,13,0.06) 0 2px, transparent 2px 7px
+    115deg, rgba(23,32,51,0.06) 0 2px, transparent 2px 7px
   );
   pointer-events:none;
 }
@@ -812,14 +812,14 @@ p{ margin:0; }
   text-transform: uppercase; letter-spacing: -0.04em;
   font-size: clamp(2.2rem, 9.5vw, 7.5rem);
   line-height: 0.92;
-  color: rgba(20,19,13,0.22);
+  color: rgba(23,32,51,0.22);
   transition: color .4s ease;
 }
 .loop-sequence li.is-active{ color: var(--accent); }
 .loop-noise span{
   font-family: var(--font-mono);
   font-size: clamp(0.6rem, 0.9vw, 0.8rem);
-  color: rgba(20,19,13,0.32);
+  color: rgba(23,32,51,0.32);
   white-space: nowrap;
 }
 .loop-num{
